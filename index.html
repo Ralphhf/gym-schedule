@@ -407,6 +407,25 @@
   .pr-item .pr-v small{color:var(--muted2); font-weight:500;}
   .pr-empty{color:var(--muted); font-size:.82rem; text-align:center; padding:14px 8px;}
 
+  /* ---- data / backup card ---- */
+  .data-card{border:1px solid var(--line); border-radius:var(--radius); background:var(--card); margin:18px 0 0; overflow:hidden;}
+  .data-bar{display:flex; align-items:center; justify-content:space-between; padding:14px 16px; cursor:pointer;}
+  .data-bar h2{font-size:1rem; font-weight:800; letter-spacing:-.02em; margin:0;}
+  .data-bar .d-caret{color:var(--muted2); font-size:.72rem; transition:transform .25s ease;}
+  .data-card.open .d-caret{transform:rotate(180deg); color:var(--accent);}
+  .data-body{display:none; padding:0 14px 15px;}
+  .data-card.open .data-body{display:block; animation:fade .22s ease;}
+  .data-note{font-size:.78rem; color:var(--muted); line-height:1.55; margin-bottom:13px;}
+  .data-note b{color:var(--accent);}
+  .data-stat{font-family:var(--font-mono); font-size:.66rem; color:var(--muted2); margin-bottom:13px; line-height:1.7;}
+  .data-btns{display:flex; flex-direction:column; gap:8px;}
+  .data-btns button{width:100%; padding:12px; border-radius:11px; font-weight:800; font-size:.85rem; cursor:pointer; border:1px solid var(--line2);}
+  .data-btns .exp{background:var(--accent); color:#06210f; border-color:var(--accent);}
+  .data-btns .imp{background:var(--bg2); color:var(--txt);}
+  .data-btns .clr{background:var(--bg2); color:#ff8da3; border-color:rgba(255,93,108,.3);}
+  .data-msg{font-size:.78rem; margin-top:11px; line-height:1.5;}
+  .data-msg.ok{color:var(--accent);} .data-msg.err{color:#ff8da3;}
+
   /* section banner (e.g. abs circuit) */
   .section-note{
     margin:22px 0 11px; padding:13px 15px;
@@ -456,6 +475,10 @@
   </div>
 </div>
 <div id="meals"></div>
+
+<div class="data-card" id="dataCard"></div>
+
+<input type="file" id="importFile" accept="application/json,.json" style="display:none">
 
 <!-- floating cart tray -->
 <div class="tray" id="tray">
@@ -1232,6 +1255,89 @@ function renderPR(){
   card.querySelector('.pr-bar').addEventListener('click',()=>card.classList.toggle('open'));
 }
 renderPR();
+
+/* ============================================================
+   DATA BACKUP — export / import / clear (localStorage JSON)
+   ============================================================ */
+const BACKUP_KEYS = ['gs_logs','gs_daily','gs_cal'];
+function gatherData(){
+  const data = {};
+  BACKUP_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) data[k]=JSON.parse(v); });
+  return data;
+}
+function dataStats(){
+  const logs=LS.get('gs_logs',{}), daily=LS.get('gs_daily',{}), cal=LS.get('gs_cal',{});
+  const sessions=Object.values(logs).reduce((a,arr)=>a+arr.length,0);
+  const calDays=Object.values(cal).reduce((a,w)=>a+Object.keys(w).length,0);
+  return { lifts:Object.keys(logs).length, sessions, days:Object.keys(daily).length, calDays };
+}
+function exportData(){
+  const blob = new Blob([JSON.stringify({
+    app:"weekly-split", version:1, exportedAt:new Date().toISOString(), data:gatherData()
+  }, null, 2)], {type:"application/json"});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `split-backup-${todayKey()}.json`;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+  LS.set('gs_lastBackup', todayKey());
+  showDataMsg('ok', `✓ Backup downloaded (split-backup-${todayKey()}.json). Save it to iCloud/Drive.`);
+  renderData();
+}
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const parsed = JSON.parse(reader.result);
+      const data = parsed.data || parsed;  // tolerate raw or wrapped
+      const keys = Object.keys(data).filter(k=>BACKUP_KEYS.includes(k));
+      if(!keys.length) throw new Error("No recognizable workout/meal data in that file.");
+      if(!confirm("Import will REPLACE your current data on this device with the file's data. Continue?")) return;
+      keys.forEach(k=> localStorage.setItem(k, JSON.stringify(data[k])));
+      showDataMsg('ok', "✓ Data restored. Reloading…");
+      setTimeout(()=>location.reload(), 700);
+    }catch(err){
+      showDataMsg('err', "⚠️ "+err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+function clearData(){
+  if(!confirm("Delete ALL logged data (workouts, PRs, calories, streaks) on this device? This cannot be undone — export a backup first.")) return;
+  BACKUP_KEYS.forEach(k=>localStorage.removeItem(k));
+  location.reload();
+}
+function showDataMsg(cls, txt){
+  const m=document.getElementById('dataMsg'); if(m){ m.className='data-msg '+cls; m.textContent=txt; }
+}
+function renderData(){
+  const card=document.getElementById('dataCard'); if(!card) return;
+  const wasOpen=card.classList.contains('open');
+  const st=dataStats(); const last=LS.get('gs_lastBackup',null);
+  card.innerHTML=`
+    <div class="data-bar"><h2>⚙️ Data &amp; Backup</h2><span class="d-caret">▼</span></div>
+    <div class="data-body">
+      <div class="data-note">Your logs live <b>only on this device</b>. Export a backup file regularly (save it to iCloud/Google Drive) so you never lose progress or can move to a new phone.</div>
+      <div class="data-stat">
+        ${st.lifts} lifts tracked · ${st.sessions} sessions logged<br>
+        ${st.calDays} days of calories · ${st.days} daily check-ins<br>
+        last backup: ${last || 'never — export now ↓'}
+      </div>
+      <div class="data-btns">
+        <button class="exp" id="btnExport">⬇ Export backup</button>
+        <button class="imp" id="btnImport">⬆ Import / restore</button>
+        <button class="clr" id="btnClear">🗑 Clear all data</button>
+      </div>
+      <div class="data-msg" id="dataMsg"></div>
+    </div>`;
+  if(wasOpen) card.classList.add('open');
+  card.querySelector('.data-bar').addEventListener('click',()=>card.classList.toggle('open'));
+  card.querySelector('#btnExport').addEventListener('click',e=>{e.stopPropagation();exportData();});
+  card.querySelector('#btnImport').addEventListener('click',e=>{e.stopPropagation();document.getElementById('importFile').click();});
+  card.querySelector('#btnClear').addEventListener('click',e=>{e.stopPropagation();clearData();});
+}
+document.getElementById('importFile').addEventListener('change',e=>{ if(e.target.files[0]) importData(e.target.files[0]); });
+renderData();
 
 /* render goal + macros card */
 (function renderGoal(){
