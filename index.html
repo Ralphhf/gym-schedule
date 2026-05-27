@@ -1113,7 +1113,7 @@ const LS = {
   get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
   set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); if(typeof onDataChanged==='function') onDataChanged(k); }catch(e){} }
 };
-let syncState='idle', syncTimer=null;   // cloud-sync state (used by renderData)
+let syncState='idle', syncTimer=null, syncErr='';   // cloud-sync state (used by renderData)
 function todayKey(){ return new Date().toISOString().slice(0,10); } // YYYY-MM-DD
 function isoWeek(d=new Date()){
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -1399,6 +1399,7 @@ function renderData(){
           ? 'Connected. Your data auto-syncs to the cloud on every change and pulls in from your other devices on open.'
           : 'Connect to back up to the cloud automatically and sync across devices. You\'ll enter your passcode once.'}</div>
         <button class="${connected?'imp':'exp'}" id="btnSync" style="width:100%;padding:11px;border-radius:11px;font-weight:800;font-size:.84rem;cursor:pointer;border:1px solid var(--line2)">${connected?'Disconnect sync':'🔗 Connect cloud sync'}</button>
+        ${syncErr?`<div class="data-msg err" style="margin-top:9px">⚠️ ${syncErr}</div>`:''}
       </div>
       <div class="data-note">Even with sync on, keep occasional <b>file exports</b> as a hard backup.</div>
       <div class="data-stat">
@@ -1447,16 +1448,18 @@ async function pushCloud(){
   try{
     const r=await fetch('/api/sync',{ method:'POST', headers:{'Content-Type':'application/json','x-pass':pass},
       body: JSON.stringify({ rev:localRev(), data:localBlob() }) });
-    setSync(r.ok?'ok':'err');
-  }catch(e){ setSync('err'); }
+    if(r.ok){ syncErr=''; setSync('ok'); }
+    else { const j=await r.json().catch(()=>({})); syncErr=(j.error||('HTTP '+r.status)); setSync('err'); }
+  }catch(e){ syncErr=String(e.message||e); setSync('err'); }
+  renderData();
 }
 async function pullCloud(){
   const pass=getPass(); if(!pass){ setSync('idle'); return; }
   setSync('syncing');
   try{
     const r=await fetch('/api/sync',{ headers:{'x-pass':pass} });
-    if(r.status===401){ setSync('err'); alert('Cloud sync: wrong passcode.'); return; }
-    if(!r.ok){ setSync('err'); return; }
+    if(!r.ok){ const j=await r.json().catch(()=>({})); syncErr=(j.error||('HTTP '+r.status)); setSync('err'); renderData(); return; }
+    syncErr='';
     const j=await r.json();
     const cloudRev=j.rev||0, cloudData=j.data||{};
     if(cloudRev > localRev() && Object.keys(cloudData).length){
