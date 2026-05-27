@@ -646,7 +646,7 @@ const MEALS = [
 ];
 
 /* Walmart products one SERVING of each option needs (for cart building).
-   Keyed by "Meal|OptionLetter". unit kept simple; Instacart matches by name
+   Keyed by "Meal|OptionLetter". unit kept simple; mapped to Walmart items
    and the user reviews quantities before ordering. Pantry condiments are
    listed once (PANTRY) instead of multiplied per serving. */
 const BUY = {
@@ -720,6 +720,37 @@ const BUY = {
 const PANTRY = ["Great Value Olive Oil", "Light Mayonnaise", "Great Value Salsa", "Grated Parmesan Cheese"];
 // round-up rule: countable units get ceil; weights round to 1 decimal
 const COUNT_UNITS = new Set(["each","can","slice"]);
+
+/* Map each BUY product → real Walmart item.
+   id    = Walmart item ID (for the add-to-cart link)
+   pack  = how much ONE package contains, in the same unit BUY uses
+   label = human package description shown in the cart review
+   IDs verified from live Walmart listings (Feb 2026). */
+const PRODUCTS = {
+  "Great Value Old Fashioned Oats":            { id:"10314925",  pack:42, label:"42 oz canister" },
+  "Great Value Large White Eggs":              { id:"172844767", pack:18, label:"18-count" },
+  "Great Value Plain Nonfat Greek Yogurt":     { id:"26559565",  pack:32, label:"32 oz tub" },
+  "Banana":                                    { id:"44390948",  pack:1,  label:"each" },
+  "Great Value Creamy Peanut Butter":          { id:"10315479",  pack:70, label:"40 oz jar" },
+  "Great Value 100% Liquid Egg Whites":        { id:"13925178",  pack:16, label:"16 oz carton" },
+  "Great Value 100% Whole Wheat Bread":        { id:"188935887", pack:20, label:"24 oz loaf" },
+  "Great Value Boneless Skinless Chicken Breast":{ id:"10414680",pack:3,  label:"3 lb bag" },
+  "Great Value Long Grain White Rice":         { id:"10315393",  pack:16, label:"16 oz bag" },
+  "Great Value Frozen Mixed Vegetables":       { id:"817042496", pack:4,  label:"12 oz bag" },
+  "Great Value Chunk Light Tuna in Water":     { id:"11965048",  pack:1,  label:"5 oz can" },
+  "Apple":                                     { id:"44390953",  pack:1,  label:"each" },
+  "Jennie-O 93/7 Lean Ground Turkey":          { id:"177404094", pack:1,  label:"1 lb tray" },
+  "Great Value Black Beans":                   { id:"10534038",  pack:1,  label:"15 oz can" },
+  "Avocado":                                   { id:null,        pack:1,  label:"each" },
+  "Great Value Spaghetti Pasta":               { id:"10534115",  pack:16, label:"16 oz box" },
+  "Great Value Marinara Sauce":                { id:"19758051",  pack:24, label:"24 oz jar" },
+  "Great Value Frozen Tilapia Fillets":        { id:"51259015",  pack:2,  label:"2 lb bag" },
+  "Russet Potato":                             { id:"10447837",  pack:12, label:"5 lb bag" },
+  "Great Value Granola":                       { id:"202344615", pack:11, label:"11 oz bag" },
+  "Great Value Frozen Mixed Berries":          { id:"10543668",  pack:16, label:"16 oz bag" },
+  "Great Value Low Fat Cottage Cheese":        { id:"12444458",  pack:24, label:"24 oz tub" },
+  "Great Value Almonds":                       { id:"692341149", pack:16, label:"16 oz bag" }
+};
 
 /* ============================================================
    SCHEDULE DATA
@@ -914,7 +945,7 @@ function detailHTML(d){
     <div class="fuel-foot">
       <b>How to use it:</b> pick <b>one option from each meal</b> any day — they're interchangeable.
       Any combo lands ~<b>185–195g protein · 260–275g carbs · 65–70g fat · ~2,450 kcal</b> (your maintenance).
-      Tap <b>+ Add to cart</b> on the options you want, set your days, then <b>Build Cart</b> → opens Instacart with Walmart items ready to order.
+      Tap <b>+ Add to cart</b> on the options you want, set your days, then <b>Build Cart</b> → opens Walmart with everything in your cart, ready to order (pickup is free).
     </div>`;
   // expand/collapse — but ignore clicks on the add button
   el.querySelectorAll('.meal-bar').forEach(bar=>{
@@ -930,7 +961,7 @@ function detailHTML(d){
 })();
 
 /* ============================================================
-   CART: selection state + quantity engine + Instacart handoff
+   CART: selection state + quantity engine + Walmart cart handoff
    ============================================================ */
 const SELECTED = new Set();
 let MEAL_DAYS = 3;
@@ -959,22 +990,30 @@ function updateTray(){
   document.getElementById('traySub').textContent = `for ${MEAL_DAYS} day${MEAL_DAYS>1?'s':''} · tap Build Cart`;
   tray.classList.toggle('show', n>0);
 }
-// aggregate selected options × days → merged Walmart product list
+// aggregate selected options × days → merged products → packages to buy
 function buildList(){
-  const merged = {}; // name -> {qty, unit}
+  const merged = {}; // name -> total qty in BUY unit
   SELECTED.forEach(key=>{
     (BUY[key]||[]).forEach(it=>{
-      const id = it.name+"||"+it.unit;
-      if(!merged[id]) merged[id] = { name:it.name, unit:it.unit, qty:0 };
-      merged[id].qty += it.qty * MEAL_DAYS;
+      if(!merged[it.name]) merged[it.name] = { name:it.name, unit:it.unit, qty:0 };
+      merged[it.name].qty += it.qty * MEAL_DAYS;
     });
   });
   return Object.values(merged).map(it=>{
-    let q = it.qty;
-    q = COUNT_UNITS.has(it.unit) ? Math.ceil(q) : Math.round(q*10)/10;
-    return { name:it.name, quantity:q, unit:it.unit,
-             display_text:`${it.name} (~${q} ${it.unit}${q!==1&&COUNT_UNITS.has(it.unit)?'s':''})` };
+    const prod = PRODUCTS[it.name] || { id:null, pack:1, label:"" };
+    const packages = Math.max(1, Math.ceil(it.qty / prod.pack));
+    return {
+      name: it.name,
+      packages,                 // how many to add to cart
+      label: prod.label,        // package description
+      id: prod.id               // Walmart item id (null = no auto-add)
+    };
   });
+}
+// build the Walmart add-to-cart URL: items=ID|QTY,ID|QTY
+function walmartCartURL(list){
+  const parts = list.filter(it=>it.id).map(it=>`${it.id}|${it.packages}`);
+  return "https://affil.walmart.com/cart/addToCart?items=" + parts.join(",");
 }
 
 /* days stepper */
@@ -995,41 +1034,34 @@ function openCartModal(){
   const list = buildList();
   if(list.length===0) return;
   const box = document.getElementById('cartBox');
-  const rows = list.map(it=>`<li><span>${it.name}</span><span class="q">${it.quantity} ${it.unit}${it.quantity!==1&&COUNT_UNITS.has(it.unit)?'s':''}</span></li>`).join("");
+  const rows = list.map(it=>{
+    const noId = it.id ? "" : ` <a href="https://www.walmart.com/search?q=${encodeURIComponent(it.name)}" target="_blank" rel="noopener" style="color:var(--moderate);font-size:.7rem">search ▸</a>`;
+    return `<li><span>${it.name} <span style="color:var(--muted2);font-size:.72rem">${it.label}</span>${noId}</span><span class="q">×${it.packages}</span></li>`;
+  }).join("");
+  const manual = list.filter(it=>!it.id).map(it=>it.name);
   box.innerHTML = `
     <h3>🛒 Your Walmart cart</h3>
-    <div class="cb-sub">${SELECTED.size} meals × ${MEAL_DAYS} days · ${list.length} items</div>
+    <div class="cb-sub">${SELECTED.size} meals × ${MEAL_DAYS} days · ${list.length} products</div>
     <ul class="cart-list">${rows}</ul>
-    <div class="cart-pantry">+ Pantry staples (buy once): ${PANTRY.join(" · ")}</div>
+    ${manual.length ? `<div class="cart-pantry">⚠️ Add manually (no auto-link): ${manual.join(" · ")}</div>` : ""}
+    <div class="cart-pantry">+ Pantry staples you likely have: ${PANTRY.join(" · ")}</div>
     <div id="cartMsg"></div>
     <div class="cart-actions">
       <button class="close" id="cartClose">Edit</button>
-      <button class="go" id="cartGo">🛒 Open in Instacart</button>
+      <button class="go" id="cartGo">🛒 Open Walmart Cart</button>
     </div>`;
   document.getElementById('cartModal').classList.add('show');
   document.getElementById('cartClose').addEventListener('click', closeCartModal);
-  document.getElementById('cartGo').addEventListener('click', ()=>sendToInstacart(list));
+  document.getElementById('cartGo').addEventListener('click', ()=>openWalmartCart(list));
 }
 function closeCartModal(){ document.getElementById('cartModal').classList.remove('show'); }
 document.getElementById('cartModal').addEventListener('click', (e)=>{ if(e.target.id==='cartModal') closeCartModal(); });
 
-async function sendToInstacart(list){
-  const go = document.getElementById('cartGo');
+function openWalmartCart(list){
+  const url = walmartCartURL(list);
+  window.open(url, '_blank', 'noopener');
   const msg = document.getElementById('cartMsg');
-  go.disabled = true; go.textContent = "Building…"; msg.innerHTML = "";
-  try{
-    const r = await fetch('/api/cart', {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ title:`Gym Meal Plan (${MEAL_DAYS} days)`, items:list })
-    });
-    const data = await r.json();
-    if(!r.ok || !data.url) throw new Error(data.error || 'Could not build cart');
-    window.open(data.url, '_blank', 'noopener');
-    go.disabled=false; go.textContent="🛒 Open in Instacart";
-  }catch(err){
-    msg.innerHTML = `<div class="cart-err">⚠️ ${err.message}<br>If this is the first run, make sure the Instacart API key is set in Vercel.</div>`;
-    go.disabled=false; go.textContent="Retry";
-  }
+  if(msg) msg.innerHTML = `<div style="font-size:.76rem;color:var(--muted);line-height:1.5;margin-top:4px">Opened Walmart with your items. Log in, choose <b style="color:var(--accent)">Pickup (free)</b> or Delivery, pick a time, and order. Review quantities before paying.</div>`;
 }
 
 /* render stats card */
