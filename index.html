@@ -363,6 +363,50 @@
   .wk-days .wkd.logged{border-color:rgba(74,222,128,.35);} .wk-days .wkd.logged b{color:var(--accent);}
   .wk-days .wkd.today2{box-shadow:0 0 0 1px var(--accent) inset;}
 
+  /* ---- workout logger (inside day panels) ---- */
+  .ex-wrap{margin-bottom:8px;}
+  .ex-wrap .ex{margin-bottom:0; border-bottom-left-radius:0; border-bottom-right-radius:0;}
+  .ex-logbar{display:flex; align-items:center; justify-content:space-between; gap:8px; padding:7px 12px; background:var(--bg); border:1px solid var(--line); border-top:none; border-radius:0 0 13px 13px; font-size:.74rem;}
+  .ex-logbar .ex-last{font-family:var(--font-mono); color:var(--muted); font-size:.68rem; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .ex-logbar .ex-last b{color:var(--accent);}
+  .ex-logbar .ex-logbtn{flex:none; background:color-mix(in srgb,var(--bar) 14%,transparent); color:var(--bar); border:1px solid color-mix(in srgb,var(--bar) 30%,transparent); font-family:var(--font-mono); font-size:.64rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; padding:5px 10px; border-radius:7px; cursor:pointer;}
+  .ex-logbtn.open{background:var(--bar); color:#06210f;}
+  .logger{display:none; padding:11px 12px; background:var(--bg); border:1px solid var(--bar); border-top:none; border-radius:0 0 13px 13px; margin-top:-1px;}
+  .logger.show{display:block; animation:fade .2s ease;}
+  .set-row{display:flex; align-items:center; gap:8px; margin-bottom:7px;}
+  .set-row .sn{font-family:var(--font-mono); font-size:.66rem; color:var(--muted2); width:34px; flex:none;}
+  .set-row input{width:100%; background:var(--bg2); border:1px solid var(--line2); color:var(--txt); border-radius:8px; padding:8px 9px; font-size:.85rem; font-family:var(--font-mono); text-align:center; -webkit-appearance:none;}
+  .set-row .x{color:var(--muted2); font-size:.8rem; flex:none;}
+  .logger-actions{display:flex; gap:8px; margin-top:9px;}
+  .logger-actions button{flex:1; padding:9px; border-radius:9px; font-weight:800; font-size:.78rem; cursor:pointer; border:none;}
+  .logger-actions .save{background:var(--accent); color:#06210f;}
+  .logger-actions .rest{background:var(--bg2); color:var(--txt); border:1px solid var(--line2);}
+
+  /* floating rest timer */
+  .rtimer{position:fixed; left:50%; transform:translateX(-50%) translateY(160%); bottom:calc(16px + env(safe-area-inset-bottom)); z-index:55; background:linear-gradient(180deg,#1a1330,#120c22); border:1px solid rgba(176,123,255,.45); border-radius:16px; box-shadow:0 16px 50px -12px rgba(0,0,0,.7); padding:12px 16px; display:flex; align-items:center; gap:14px; transition:transform .35s cubic-bezier(.2,.8,.2,1);}
+  .rtimer.show{transform:translateX(-50%) translateY(0);}
+  .rtimer .rt-time{font-family:var(--font-mono); font-size:1.6rem; font-weight:800; color:var(--run); font-variant-numeric:tabular-nums; min-width:74px; text-align:center;}
+  .rtimer .rt-time.done{color:var(--accent); animation:pulse .6s ease 3;}
+  @keyframes pulse{50%{opacity:.4;}}
+  .rtimer .rt-btns{display:flex; gap:6px;}
+  .rtimer .rt-btns button{background:var(--bg2); color:var(--txt); border:1px solid var(--line2); border-radius:8px; padding:7px 10px; font-family:var(--font-mono); font-size:.7rem; font-weight:700; cursor:pointer;}
+  .rtimer .rt-x{background:none; border:none; color:var(--muted2); font-size:1.1rem; cursor:pointer; padding:2px 4px;}
+
+  /* PR board */
+  .pr-card{border:1px solid var(--line); border-radius:var(--radius); background:linear-gradient(180deg,var(--card2),var(--card)); margin:0 0 18px; overflow:hidden;}
+  .pr-card::before{content:""; position:absolute; }
+  .pr-bar{display:flex; align-items:center; justify-content:space-between; padding:15px 16px; cursor:pointer;}
+  .pr-bar h2{font-size:1.1rem; font-weight:900; letter-spacing:-.03em; margin:0;}
+  .pr-bar .pr-caret{color:var(--muted2); font-size:.72rem; transition:transform .25s ease;}
+  .pr-card.open .pr-caret{transform:rotate(180deg); color:var(--accent);}
+  .pr-body{display:none; padding:0 14px 14px;}
+  .pr-card.open .pr-body{display:block; animation:fade .22s ease;}
+  .pr-item{display:flex; align-items:center; justify-content:space-between; padding:9px 12px; background:var(--bg2); border:1px solid var(--line); border-radius:10px; margin-bottom:6px;}
+  .pr-item .pr-n{font-size:.86rem; font-weight:600;}
+  .pr-item .pr-v{font-family:var(--font-mono); font-size:.8rem; color:var(--accent); font-weight:700; white-space:nowrap;}
+  .pr-item .pr-v small{color:var(--muted2); font-weight:500;}
+  .pr-empty{color:var(--muted); font-size:.82rem; text-align:center; padding:14px 8px;}
+
   /* section banner (e.g. abs circuit) */
   .section-note{
     margin:22px 0 11px; padding:13px 15px;
@@ -401,6 +445,8 @@
 
 <div class="grid" id="grid"></div>
 
+<div class="pr-card" id="prCard"></div>
+
 <div class="fuel-head">
   <h2>🍳 Fuel <span style="color:var(--accent)">·</span> Meal Plan</h2>
   <div class="days-pick">
@@ -424,6 +470,18 @@
 <!-- cart result modal -->
 <div class="cart-modal" id="cartModal">
   <div class="cart-box" id="cartBox"></div>
+</div>
+
+<!-- floating rest timer -->
+<div class="rtimer" id="rtimer">
+  <span class="rt-time" id="rtTime">0:00</span>
+  <div class="rt-btns">
+    <button data-rt="60">60s</button>
+    <button data-rt="90">90s</button>
+    <button data-rt="180">3m</button>
+    <button data-rt="+30">+30</button>
+  </div>
+  <button class="rt-x" id="rtClose">✕</button>
 </div>
 
 <footer>
@@ -919,6 +977,8 @@ function detailHTML(d){
     return out;
   }
   const s = SCHEMES[d.intensity];
+  const setsN = d.intensity === "Heavy" ? 4 : 3;
+  const restSec = d.intensity === "Heavy" ? 180 : 90;
   let out = `<div class="scheme">
       <div class="box"><div class="k">Intensity</div><div class="v" style="color:${d.color}">${d.intensity}</div></div>
       <div class="box"><div class="k">Volume</div><div class="v">${s.sets} <small>× ${s.reps}</small></div></div>
@@ -932,10 +992,17 @@ function detailHTML(d){
     out += `<div class="muscle"><h3><span class="dot"></span>${g[0]}</h3>`;
     g[1].forEach(name => {
       const v = linkFor(name);
-      out += `<a class="ex" href="${v.u}" target="_blank" rel="noopener">
-                <span><span class="name">${name}</span><br><span class="src">▶ ${v.c}</span></span>
-                <span class="play">${PLAY}</span>
-              </a>`;
+      out += `<div class="ex-wrap" data-ex="${name.replace(/"/g,'&quot;')}" data-sets="${setsN}" data-rest="${restSec}">
+                <a class="ex" href="${v.u}" target="_blank" rel="noopener">
+                  <span><span class="name">${name}</span><br><span class="src">▶ ${v.c}</span></span>
+                  <span class="play">${PLAY}</span>
+                </a>
+                <div class="ex-logbar">
+                  <span class="ex-last">${lastSummary(name)}</span>
+                  <button class="ex-logbtn" type="button">＋ log</button>
+                </div>
+                <div class="logger"></div>
+              </div>`;
     });
     out += `</div>`;
   });
@@ -1060,6 +1127,111 @@ function renderTracker(){
   if(calIn) calIn.addEventListener('keydown',e=>{ if(e.key==='Enter')calBtn.click(); });
 }
 renderTracker();
+
+/* ============================================================
+   WORKOUT LOGGER + REST TIMER + PR BOARD
+   ============================================================ */
+const LOG_KEY = 'gs_logs';
+function logsFor(name){ const all = LS.get(LOG_KEY, {}); return all[name] || []; }
+function lastSession(name){ const a = logsFor(name); return a.length ? a[a.length-1] : null; }
+function lastSummary(name){
+  const s = lastSession(name);
+  if(!s || !s.sets.length) return 'No log yet — tap ＋ log';
+  const top = s.sets.filter(x=>x.w||x.r).map(x=>`${x.w}×${x.r}`).join(' · ');
+  return top ? `last: <b>${top}</b>` : 'No log yet — tap ＋ log';
+}
+function e1rm(w,r){ return w * (1 + r/30); }  // Epley estimated 1-rep max
+function bestPR(name){
+  let best=null;
+  logsFor(name).forEach(s=>s.sets.forEach(x=>{
+    if(x.w>0 && x.r>0){ const e=e1rm(x.w,x.r); if(!best || e>best.e) best={w:x.w,r:x.r,e}; }
+  }));
+  return best;
+}
+
+/* build the inline logger for one exercise */
+function buildLogger(wrap){
+  const name = wrap.dataset.ex.replace(/&quot;/g,'"');
+  const sets = parseInt(wrap.dataset.sets,10) || 3;
+  const rest = parseInt(wrap.dataset.rest,10) || 90;
+  const prev = lastSession(name);
+  let rows = '';
+  for(let i=0;i<sets;i++){
+    const pw = prev && prev.sets[i] ? prev.sets[i].w : '';
+    const pr = prev && prev.sets[i] ? prev.sets[i].r : '';
+    rows += `<div class="set-row"><span class="sn">SET ${i+1}</span>
+      <input type="number" inputmode="decimal" class="lw" placeholder="${pw||'weight'}" value="">
+      <span class="x">×</span>
+      <input type="number" inputmode="numeric" class="lr" placeholder="${pr||'reps'}" value=""></div>`;
+  }
+  const log = wrap.querySelector('.logger');
+  log.innerHTML = rows + `<div class="logger-actions">
+      <button class="rest" type="button">⏱ Rest ${rest>=120?(rest/60)+'m':rest+'s'}</button>
+      <button class="save" type="button">✓ Save</button>
+    </div>`;
+  log.querySelector('.save').addEventListener('click',()=>{
+    const ws = [...log.querySelectorAll('.lw')], rs = [...log.querySelectorAll('.lr')];
+    const setData = ws.map((w,i)=>({
+      w: parseFloat(w.value)|| (w.placeholder!=='weight'?parseFloat(w.placeholder):0) || 0,
+      r: parseInt(rs[i].value,10)|| (rs[i].placeholder!=='reps'?parseInt(rs[i].placeholder,10):0) || 0
+    })).filter(x=>x.w||x.r);
+    if(!setData.length) return;
+    const all = LS.get(LOG_KEY,{}); if(!all[name]) all[name]=[];
+    all[name].push({ date: todayKey(), sets:setData });
+    LS.set(LOG_KEY, all);
+    wrap.querySelector('.ex-last').innerHTML = lastSummary(name);
+    log.classList.remove('show'); wrap.querySelector('.ex-logbtn').classList.remove('open');
+    renderPR();
+  });
+  log.querySelector('.rest').addEventListener('click',()=>startRest(rest));
+}
+
+/* delegate clicks for the +log buttons (panels already in DOM) */
+document.addEventListener('click',(e)=>{
+  const btn = e.target.closest('.ex-logbtn');
+  if(!btn) return;
+  e.stopPropagation();
+  const wrap = btn.closest('.ex-wrap');
+  const log = wrap.querySelector('.logger');
+  const opening = !log.classList.contains('show');
+  if(opening && !log.innerHTML) buildLogger(wrap);
+  log.classList.toggle('show', opening);
+  btn.classList.toggle('open', opening);
+});
+
+/* rest timer */
+let rtInt=null, rtRemain=0;
+function rtTick(){ const m=Math.floor(rtRemain/60), s=rtRemain%60; document.getElementById('rtTime').textContent=`${m}:${String(s).padStart(2,'0')}`; }
+function startRest(sec){
+  rtRemain=sec; const t=document.getElementById('rtTime'); t.classList.remove('done');
+  document.getElementById('rtimer').classList.add('show'); rtTick();
+  clearInterval(rtInt);
+  rtInt=setInterval(()=>{
+    rtRemain--;
+    if(rtRemain<=0){ clearInterval(rtInt); rtInt=null; rtRemain=0; t.classList.add('done'); if(navigator.vibrate) navigator.vibrate([200,100,200]); }
+    rtTick();
+  },1000);
+}
+document.querySelectorAll('#rtimer [data-rt]').forEach(b=>b.addEventListener('click',()=>{
+  const v=b.dataset.rt;
+  if(v==='+30') startRest(Math.max(0,rtRemain)+30);  // extend (or start at 30)
+  else startRest(parseInt(v,10));
+}));
+document.getElementById('rtClose').addEventListener('click',()=>{ clearInterval(rtInt); rtInt=null; document.getElementById('rtimer').classList.remove('show'); });
+
+/* PR board */
+function renderPR(){
+  const all = LS.get(LOG_KEY,{}); const card=document.getElementById('prCard'); if(!card) return;
+  const wasOpen = card.classList.contains('open');
+  const items = Object.keys(all).map(name=>({name,pr:bestPR(name)})).filter(x=>x.pr).sort((a,b)=>b.pr.e-a.pr.e);
+  card.innerHTML = `<div class="pr-bar"><h2>🏆 Personal Records</h2><span class="pr-caret">▼</span></div>
+    <div class="pr-body">${ items.length
+      ? items.map(x=>`<div class="pr-item"><span class="pr-n">${x.name}</span><span class="pr-v">${x.pr.w}×${x.pr.r} <small>· e1RM ${Math.round(x.pr.e)}</small></span></div>`).join('')
+      : '<div class="pr-empty">No lifts logged yet. Tap ＋ log on any exercise — your best lifts show up here automatically.</div>' }</div>`;
+  if(wasOpen) card.classList.add('open');
+  card.querySelector('.pr-bar').addEventListener('click',()=>card.classList.toggle('open'));
+}
+renderPR();
 
 /* render goal + macros card */
 (function renderGoal(){
