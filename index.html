@@ -175,6 +175,36 @@
   .stats-foot{margin-top:12px; padding:12px 14px; background:rgba(74,222,128,.06); border:1px solid rgba(74,222,128,.22); border-radius:12px; font-size:.8rem; color:var(--txt); line-height:1.55;}
   .stats-foot b{color:var(--accent); font-weight:700;}
 
+  /* ---- goal + macros card ---- */
+  .goal{
+    border:1px solid var(--line); border-radius:var(--radius);
+    background:
+      radial-gradient(120% 140% at 0% 0%, rgba(176,123,255,.1), transparent 50%),
+      linear-gradient(180deg, var(--card2), var(--card));
+    padding:16px 18px 18px; margin:0 0 18px; position:relative; overflow:hidden;
+  }
+  .goal::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:linear-gradient(180deg, var(--run), #8b5cf6);}
+  .goal .col-k{font-family:var(--font-mono); font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted2); font-weight:500;}
+  .goal .goal-title{font-size:1.15rem; font-weight:900; margin-top:5px; letter-spacing:-.03em; line-height:1.1;}
+  .goal .goal-sub{font-size:.8rem; color:var(--muted); margin-top:6px; line-height:1.5;}
+  .goal .goal-cal{display:flex; align-items:baseline; gap:7px; margin-top:14px; padding-top:14px; border-top:1px solid var(--line);}
+  .goal .goal-cal .num{font-size:1.7rem; font-weight:900; letter-spacing:-.04em; color:var(--run); font-variant-numeric:tabular-nums;}
+  .goal .goal-cal .lab{font-family:var(--font-mono); font-size:.62rem; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);}
+  /* macro bars */
+  .macros{margin-top:14px; display:flex; flex-direction:column; gap:11px;}
+  .macro .mhead{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px;}
+  .macro .mname{font-weight:800; font-size:.92rem; letter-spacing:-.01em;}
+  .macro .mname .pct{font-family:var(--font-mono); font-size:.62rem; color:var(--muted2); font-weight:500; margin-left:7px; letter-spacing:.05em;}
+  .macro .mval{font-family:var(--font-mono); font-weight:700; font-size:.9rem; font-variant-numeric:tabular-nums;}
+  .macro .mval .kc{color:var(--muted2); font-size:.68rem; font-weight:500; margin-left:6px;}
+  .macro .bar{height:8px; border-radius:99px; background:var(--bg2); overflow:hidden; border:1px solid var(--line);}
+  .macro .bar i{display:block; height:100%; border-radius:99px;}
+  .macro.p .mval, .macro.p .mname{color:#ff8da3;}  .macro.p .bar i{background:linear-gradient(90deg,#ff5d6c,#ff8da3);}
+  .macro.f .mval, .macro.f .mname{color:#ffc861;}  .macro.f .bar i{background:linear-gradient(90deg,#f5a623,#ffc861);}
+  .macro.c .mval, .macro.c .mname{color:#5fb6ff;}  .macro.c .bar i{background:linear-gradient(90deg,#4d9fff,#7ec4ff);}
+  .goal-tip{margin-top:15px; padding:11px 13px; background:rgba(176,123,255,.07); border:1px solid rgba(176,123,255,.25); border-radius:12px; font-size:.78rem; color:var(--txt); line-height:1.55;}
+  .goal-tip b{color:var(--run); font-weight:700;}
+
   /* section banner (e.g. abs circuit) */
   .section-note{
     margin:22px 0 11px; padding:13px 15px;
@@ -206,6 +236,8 @@
 </header>
 
 <div class="stats" id="stats"></div>
+
+<div class="goal" id="goal"></div>
 
 <div class="grid" id="grid"></div>
 
@@ -384,6 +416,27 @@ const WEEKLY_TDEE = SEDENTARY*7 + WEEKLY_BURN;
 const DAILY_AVG = Math.round(WEEKLY_TDEE / 7);
 
 /* ============================================================
+   GOAL + MACROS
+   Chosen goal: MAINTAIN (build muscle, V-taper to slim waist)
+   ============================================================ */
+const GOAL = {
+  name: "Maintain & Build Muscle",
+  sub: "Eat at maintenance, ride the comeback/muscle-memory window + creatine. Growing shoulders, chest & back builds a V-taper that makes the waist look smaller.",
+  calories: DAILY_AVG,                 // ~2,471
+  // muscle-focused split at 175 lb
+  protein_g: 185,                      // ~1.05 g/lb — preserve & build
+  fat_g: 70,                           // ~0.4 g/lb — hormone floor
+  // carbs fill the remainder
+};
+GOAL.carbs_g = Math.round((GOAL.calories - GOAL.protein_g*4 - GOAL.fat_g*9) / 4);
+const MACROS = [
+  { key:"p", name:"Protein", g:GOAL.protein_g, kcal:GOAL.protein_g*4 },
+  { key:"c", name:"Carbs",   g:GOAL.carbs_g,   kcal:GOAL.carbs_g*4 },
+  { key:"f", name:"Fat",     g:GOAL.fat_g,     kcal:GOAL.fat_g*9 }
+];
+const MACRO_KCAL_TOTAL = MACROS.reduce((a,m)=>a+m.kcal,0);
+
+/* ============================================================
    SCHEDULE DATA
    ============================================================ */
 const SCHEMES = {
@@ -510,6 +563,37 @@ function detailHTML(d){
   return out;
 }
 
+/* render goal + macros card */
+(function renderGoal(){
+  const el = document.getElementById('goal');
+  if(!el) return;
+  const proteinPerMeal = Math.round(GOAL.protein_g / 4);
+  const bars = MACROS.map(m=>{
+    const pct = Math.round(m.kcal / MACRO_KCAL_TOTAL * 100);
+    return `<div class="macro ${m.key}">
+      <div class="mhead">
+        <span class="mname">${m.name}<span class="pct">${pct}% cal</span></span>
+        <span class="mval">${m.g}g<span class="kc">${m.kcal.toLocaleString()} kcal</span></span>
+      </div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+    </div>`;
+  }).join("");
+  el.innerHTML = `
+    <div class="col-k">My goal</div>
+    <div class="goal-title">${GOAL.name}</div>
+    <div class="goal-sub">${GOAL.sub}</div>
+    <div class="goal-cal">
+      <span class="num">${GOAL.calories.toLocaleString()}</span>
+      <span class="lab">kcal / day · maintenance</span>
+    </div>
+    <div class="macros">${bars}</div>
+    <div class="goal-tip">
+      <b>Hit protein first</b> — ${GOAL.protein_g}g/day, split ~${proteinPerMeal}g across 4 meals.
+      Put most carbs around lifts &amp; Thu intervals. Creatine 3–5g daily.
+      Progress = mirror, waist tape &amp; lift numbers, <b>not</b> the scale.
+    </div>`;
+})();
+
 /* render stats card */
 (function renderStats(){
   const el = document.getElementById('stats');
@@ -545,8 +629,7 @@ function detailHTML(d){
       ${dayRows}
       <div class="stats-foot">
         Numbers = <b>sedentary baseline (${SEDENTARY.toLocaleString()})</b> + workout kcal. Estimates ±10%.<br>
-        Maintain: ~${DAILY_AVG.toLocaleString()} kcal/day · Cut: ~${(DAILY_AVG-500).toLocaleString()} · Lean bulk: ~${(DAILY_AVG+300).toLocaleString()}.<br>
-        Protein target: <b>~${PROFILE.weight_lb}g/day</b> (1g per lb bodyweight).
+        Your goal: <b>eat at maintenance (~${DAILY_AVG.toLocaleString()} kcal/day)</b> to build muscle while staying lean. See macros card below ↓
       </div>
     </div>`;
   el.addEventListener('click', () => el.classList.toggle('open'));
