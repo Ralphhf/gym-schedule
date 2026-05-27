@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
+<title>My Weekly Split</title>
+<style>
+  :root{
+    --bg:#0a0a0f; --bg2:#12121a; --card:#16161f; --card2:#1d1d28;
+    --line:#262633; --txt:#f1f1f5; --muted:#9a9aae; --muted2:#6f6f82;
+    --heavy:#ff5b5b; --moderate:#3da5ff; --run:#b07bff; --rest:#5a5a6b;
+    --accent:#54e0a8; --radius:16px;
+    font-size:16px;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:radial-gradient(1200px 600px at 50% -10%, #16161f 0%, var(--bg) 60%);
+    color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh;
+    padding:env(safe-area-inset-top) 14px calc(40px + env(safe-area-inset-bottom));
+    max-width:680px; margin:0 auto;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{padding:22px 4px 14px;}
+  h1{font-size:1.5rem; margin:0; letter-spacing:-.02em; font-weight:800;}
+  .sub{color:var(--muted); font-size:.86rem; margin-top:4px;}
+
+  /* ---- day grid ---- */
+  .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-top:6px;}
+  .grid .full{grid-column:1 / -1;}
+  .day{
+    position:relative; border:1px solid var(--line); border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--card2),var(--card));
+    padding:14px 14px 13px; cursor:pointer; overflow:hidden;
+    transition:transform .12s ease, border-color .15s ease;
+  }
+  .day:active{transform:scale(.985);}
+  .day.open{border-color:var(--bar);}
+  .day::before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--bar);}
+  .day .dow{font-size:.72rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted2); font-weight:700;}
+  .day .focus{font-size:1.18rem; font-weight:800; margin-top:3px; letter-spacing:-.01em;}
+  .day .meta{display:flex; align-items:center; gap:8px; margin-top:9px; flex-wrap:wrap;}
+  .chip{
+    font-size:.68rem; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+    padding:4px 9px; border-radius:999px; border:1px solid transparent;
+  }
+  .chip.heavy{color:var(--heavy); background:rgba(255,91,91,.12); border-color:rgba(255,91,91,.3);}
+  .chip.moderate{color:var(--moderate); background:rgba(61,165,255,.12); border-color:rgba(61,165,255,.3);}
+  .chip.intervals{color:var(--run); background:rgba(176,123,255,.12); border-color:rgba(176,123,255,.3);}
+  .chip.rest{color:var(--muted); background:rgba(120,120,140,.12); border-color:rgba(120,120,140,.3);}
+  .day .caret{position:absolute; right:13px; bottom:12px; color:var(--muted2); font-size:.8rem; transition:transform .2s ease;}
+  .day.open .caret{transform:rotate(180deg);}
+
+  /* ---- detail panel ---- */
+  .detail{grid-column:1 / -1; display:none; animation:fade .22s ease;}
+  .detail.show{display:block;}
+  @keyframes fade{from{opacity:0; transform:translateY(-6px);} to{opacity:1; transform:none;}}
+  .panel{
+    border:1px solid var(--line); border-top:3px solid var(--bar);
+    border-radius:var(--radius); background:var(--card); padding:16px 14px 6px; margin-top:-2px;
+  }
+  .scheme{
+    display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px;
+  }
+  .scheme .box{
+    flex:1 1 130px; background:var(--bg2); border:1px solid var(--line);
+    border-radius:12px; padding:11px 13px;
+  }
+  .scheme .box .k{font-size:.66rem; text-transform:uppercase; letter-spacing:.1em; color:var(--muted2); font-weight:700;}
+  .scheme .box .v{font-size:1.02rem; font-weight:800; margin-top:3px;}
+  .scheme .box .v small{font-weight:600; color:var(--muted); font-size:.78rem;}
+
+  .muscle{margin-bottom:14px;}
+  .muscle h3{
+    font-size:.82rem; margin:0 0 7px; color:var(--txt); font-weight:800;
+    display:flex; align-items:center; gap:8px;
+  }
+  .muscle h3 .dot{width:7px; height:7px; border-radius:50%; background:var(--bar); flex:none;}
+  .ex{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:var(--bg2); border:1px solid var(--line); border-radius:11px;
+    padding:11px 12px; margin-bottom:7px; text-decoration:none; color:var(--txt);
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .ex:active{background:var(--card2);}
+  .ex .name{font-size:.92rem; font-weight:600; line-height:1.25;}
+  .ex .src{font-size:.7rem; color:var(--muted2); margin-top:2px;}
+  .ex .play{
+    flex:none; width:34px; height:34px; border-radius:9px;
+    background:rgba(255,91,91,.12); display:grid; place-items:center;
+    border:1px solid rgba(255,91,91,.25);
+  }
+  .ex .play svg{width:15px; height:15px; fill:#ff5b5b;}
+
+  /* running card */
+  .run-block{margin-bottom:12px;}
+  .run-block .k{font-size:.7rem; text-transform:uppercase; letter-spacing:.1em; color:var(--run); font-weight:800; margin-bottom:6px;}
+  .run-block .opt{
+    background:var(--bg2); border:1px solid var(--line); border-radius:11px;
+    padding:11px 13px; margin-bottom:7px; font-size:.92rem; font-weight:600;
+  }
+  .run-block .opt small{display:block; color:var(--muted); font-weight:500; font-size:.78rem; margin-top:2px;}
+
+  /* stats / TDEE card */
+  .stats{
+    border:1px solid var(--line); border-radius:var(--radius);
+    background:linear-gradient(180deg, rgba(84,224,168,.06), var(--card));
+    padding:14px 16px 13px; margin:0 0 14px; cursor:pointer;
+    position:relative; overflow:hidden;
+    transition:transform .12s ease, border-color .15s ease;
+  }
+  .stats:active{transform:scale(.99);}
+  .stats.open{border-color:var(--accent);}
+  .stats::before{content:""; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--accent);}
+  .stats-row{display:flex; justify-content:space-between; align-items:center; gap:14px;}
+  .stats .col-k{font-size:.66rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted2); font-weight:700;}
+  .stats .profile-v{font-size:.98rem; font-weight:800; margin-top:3px; letter-spacing:-.01em;}
+  .stats .profile-sub{font-size:.74rem; color:var(--muted); margin-top:2px;}
+  .stats .kcal{text-align:right;}
+  .stats .kcal-big{font-size:1.65rem; font-weight:900; letter-spacing:-.02em; color:var(--accent); line-height:1; white-space:nowrap;}
+  .stats .kcal-big .u{font-size:.62rem; font-weight:700; color:var(--muted); letter-spacing:.08em; margin-left:3px; text-transform:uppercase;}
+  .stats .kcal-sub{font-size:.7rem; color:var(--muted); margin-top:4px;}
+  .stats .caret{position:absolute; right:13px; bottom:10px; color:var(--muted2); font-size:.72rem; transition:transform .2s ease;}
+  .stats.open .caret{transform:rotate(180deg);}
+  .stats-detail{display:none; margin-top:14px; padding-top:14px; border-top:1px solid var(--line);}
+  .stats.open .stats-detail{display:block; animation:fade .22s ease;}
+  .stats-tri{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px;}
+  .stats-tri .box{background:var(--bg2); border:1px solid var(--line); border-radius:11px; padding:9px 10px;}
+  .stats-tri .box .k{font-size:.6rem; color:var(--muted2); font-weight:700; letter-spacing:.1em; text-transform:uppercase;}
+  .stats-tri .box .v{font-size:.95rem; font-weight:800; margin-top:2px;}
+  .stats-tri .box .v small{font-weight:600; color:var(--muted); font-size:.7rem;}
+  .day-burn{display:flex; justify-content:space-between; align-items:baseline; padding:8px 11px; border-radius:9px; background:var(--bg2); border:1px solid var(--line); margin-bottom:6px; font-size:.85rem;}
+  .day-burn .lbl{display:flex; align-items:center; gap:8px;}
+  .day-burn .dot2{width:8px; height:8px; border-radius:50%; flex:none;}
+  .day-burn .focus2{font-weight:700;}
+  .day-burn .note{color:var(--muted2); font-size:.72rem; margin-left:6px;}
+  .day-burn .val{color:var(--accent); font-weight:800; font-size:.92rem;}
+  .day-burn .val .b{color:var(--muted); font-weight:500; font-size:.72rem;}
+  .stats-foot{margin-top:10px; padding:10px 12px; background:rgba(84,224,168,.07); border:1px solid rgba(84,224,168,.25); border-radius:11px; font-size:.78rem; color:var(--txt); line-height:1.45;}
+  .stats-foot b{color:var(--accent);}
+
+  /* section banner (e.g. abs circuit) */
+  .section-note{
+    margin:18px 0 10px; padding:11px 13px;
+    background:linear-gradient(90deg, rgba(84,224,168,.14), transparent);
+    border:1px solid rgba(84,224,168,.3);
+    border-left:3px solid var(--accent);
+    border-radius:11px;
+    font-size:.78rem; font-weight:800; color:var(--accent);
+    letter-spacing:.08em; text-transform:uppercase;
+  }
+  .section-note small{display:block; font-weight:600; color:var(--txt); margin-top:5px; font-size:.82rem; letter-spacing:0; text-transform:none;}
+
+  .rest-msg{text-align:center; padding:26px 10px 30px; color:var(--muted);}
+  .rest-msg .big{font-size:2.4rem; margin-bottom:6px;}
+  .rest-msg .lbl{font-size:1rem; font-weight:700; color:var(--txt);}
+
+  footer{text-align:center; color:var(--muted2); font-size:.72rem; margin-top:26px; line-height:1.5;}
+  footer b{color:var(--muted);}
+</style>
+</head>
+<body>
+<header>
+  <h1>My Weekly Split</h1>
+  <div class="sub">Tap any day to see the plan · links open coach tutorials</div>
+</header>
+
+<div class="stats" id="stats"></div>
+
+<div class="grid" id="grid"></div>
+
+<footer>
+  <b>Heavy</b> = 4×4–6, 3 min rest &nbsp;·&nbsp; <b>Moderate</b> = 3×8–12, 60–90s rest<br>
+  Tutorials from credible strength/hypertrophy coaches.
+</footer>
+
+<script>
+/* ============================================================
+   VIDEO LINKS
+   VIDEOS[exerciseName] = { u: "youtube url", c: "Coach name" }
+   Anything missing falls back to a YouTube search (always works).
+   ============================================================ */
+const VIDEOS = {
+  // ---- MON · Legs ----
+  "Hack squat": { u:"https://www.youtube.com/shorts/g9i05umL5vc", c:"Tutorial" },
+  "Pendulum squat": { u:"https://www.youtube.com/shorts/SbsOxvtqqeQ", c:"Tutorial" },
+  "Leg press": { u:"https://www.youtube.com/shorts/nDh_BlnLCGc", c:"Tutorial" },
+  "Bulgarian split squat": { u:"https://www.youtube.com/shorts/or1frhkjBDc", c:"Tutorial" },
+  "Sissy squat": { u:"https://www.youtube.com/shorts/ClcqUknOUsY", c:"Tutorial" },
+  "Heels-elevated narrow squat": { u:"https://www.youtube.com/shorts/cSgc5W6xzVE", c:"Tutorial" },
+  "Seated leg curl": { u:"https://www.youtube.com/shorts/jNC3aYBHL1I", c:"Jeff Nippard" },
+  "Romanian deadlift": { u:"https://www.youtube.com/shorts/KhjNjzrm93c", c:"Jeff Nippard" },
+  "Nordic curl": { u:"https://www.youtube.com/shorts/gL3y-5B9i9M", c:"Tutorial" },
+  "Hip thrust": { u:"https://www.youtube.com/shorts/-1cAnwFNBLg", c:"Tutorial" },
+  "Cable kickback": { u:"https://www.youtube.com/shorts/hQKQZdCAntQ", c:"Tutorial" },
+  "Standing calf raise": { u:"https://www.youtube.com/shorts/baEXLy09Ncc", c:"Tutorial" },
+  "Smith standing calf raise": { u:"https://www.youtube.com/shorts/wlqTemUXPXY", c:"Tutorial" },
+  "Leg press calf raise": { u:"https://www.youtube.com/shorts/DqT1h2_hQJ4", c:"Tutorial" },
+  "Seated calf raise": { u:"https://www.youtube.com/shorts/B5MKjeSeM7g", c:"Tutorial" },
+  "Bent-knee calf raise": { u:"https://www.youtube.com/shorts/B5MKjeSeM7g", c:"Tutorial" },
+  "Tibialis raise (antagonist)": { u:"https://www.youtube.com/shorts/h57xceuiO40", c:"Tutorial" },
+
+  // ---- TUE · Push ----
+  "Incline DB press": { u:"https://www.youtube.com/shorts/8fXfwG4ftaQ", c:"Tutorial" },
+  "Low-to-high cable fly": { u:"https://www.youtube.com/shorts/MEZ8UPbOO08", c:"Tutorial" },
+  "Incline Smith press": { u:"https://www.youtube.com/shorts/lcq7YgxPVBA", c:"Tutorial" },
+  "Flat DB press": { u:"https://www.youtube.com/shorts/mTaiQemkEpU", c:"Tutorial" },
+  "Machine chest press (plate-loaded)": { u:"https://www.youtube.com/shorts/Qu7-ceCvq7w", c:"Tutorial" },
+  "Flat barbell bench": { u:"https://www.youtube.com/shorts/hWbUlkb5Ms4", c:"Jeff Nippard" },
+  "Weighted dips (chest-leaning)": { u:"https://www.youtube.com/shorts/WyGczAdyyGA", c:"Tutorial" },
+  "Decline DB press": { u:"https://www.youtube.com/shorts/UguQiKgnHmY", c:"Tutorial" },
+  "High-to-low cable fly": { u:"https://www.youtube.com/shorts/ZVwgKeqrYeA", c:"Tutorial" },
+  "Overhead press": { u:"https://www.youtube.com/shorts/zoN5EH50Dro", c:"Tutorial" },
+  "Seated DB press": { u:"https://www.youtube.com/shorts/k6tzKisR3NY", c:"Tutorial" },
+  "Landmine press": { u:"https://www.youtube.com/shorts/gH7PDepHNck", c:"Tutorial" },
+  "Cable lateral raise (behind back)": { u:"https://www.youtube.com/shorts/1wq4AySe2gg", c:"Tutorial" },
+  "DB lateral raise": { u:"https://www.youtube.com/shorts/NZsldrqqca8", c:"Jeff Nippard" },
+  "Lu raise": { u:"https://www.youtube.com/shorts/RsKPO6cK8eg", c:"Tutorial" },
+  "Overhead cable extension (rope)": { u:"https://www.youtube.com/watch?v=popGXI-qs98", c:"Jeff Nippard" },
+  "Incline DB skull crusher": { u:"https://www.youtube.com/watch?v=-h6KL7ierzc", c:"Hunter Labrada" },
+  "Cross-body cable extension": { u:"https://www.youtube.com/shorts/cwDI3x-aT6M", c:"Tutorial" },
+  "Rope pushdown": { u:"https://www.youtube.com/shorts/7OF77JMEXhM", c:"Tutorial" },
+  "Straight-bar pushdown": { u:"https://www.youtube.com/shorts/uHv7uy0FLTM", c:"Tutorial" },
+  "Close-grip bench press": { u:"https://www.youtube.com/shorts/qcYGEGqfScw", c:"Tutorial" },
+  "Reverse-grip pushdown": { u:"https://www.youtube.com/shorts/IqKUvew7wAU", c:"Tutorial" },
+  "Diamond push-up": { u:"https://www.youtube.com/shorts/YqsuJcr5kVc", c:"Tutorial" },
+  "Bench dips": { u:"https://www.youtube.com/shorts/4ua3MzaU0QU", c:"Tutorial" },
+
+  // ---- WED · Pull ----
+  "Lat pulldown (neutral grip)": { u:"https://www.youtube.com/shorts/5Hjhg43P5vE", c:"Jeff Nippard" },
+  "Weighted pull-up": { u:"https://www.youtube.com/shorts/1yys2zXHZ48", c:"Tutorial" },
+  "Straight-arm pulldown": { u:"https://www.youtube.com/shorts/eKJUJ2eFPUY", c:"Tutorial" },
+  "Chest-supported T-bar row": { u:"https://www.youtube.com/shorts/Mlr-Lx-10HQ", c:"Tutorial" },
+  "Single-arm DB row": { u:"https://www.youtube.com/shorts/H8jf3DwlIlo", c:"Tutorial" },
+  "Cable row (neutral)": { u:"https://www.youtube.com/watch?v=qqZHnqzvbXs", c:"Tutorial" },
+  "DB shrug": { u:"https://www.youtube.com/shorts/XE62wQAModU", c:"Tutorial" },
+  "Trap-bar shrug": { u:"https://www.youtube.com/shorts/aS-urgr_3Lc", c:"Tutorial" },
+  "Face pull": { u:"https://www.youtube.com/shorts/j0vWz7hoEOE", c:"Jeff Nippard" },
+  "Reverse pec deck": { u:"https://www.youtube.com/shorts/BmJHBBZRpZg", c:"Tutorial" },
+  "Cable rear-delt fly (high-to-low)": { u:"https://www.youtube.com/shorts/FeERX9UwspY", c:"Tutorial" },
+  "Bent-over DB fly": { u:"https://www.youtube.com/shorts/KoRDmXocJII", c:"Tutorial" },
+  "Incline DB curl": { u:"https://www.youtube.com/shorts/uCUaRFlA9vE", c:"Tutorial" },
+  "Bayesian cable curl": { u:"https://www.youtube.com/shorts/BaSd7C58L3o", c:"Tutorial" },
+  "Hammer curl": { u:"https://www.youtube.com/shorts/NyW2fT2gQhM", c:"Tutorial" },
+  "Preacher curl": { u:"https://www.youtube.com/shorts/iKgfqFkdeWY", c:"Tutorial" },
+  "Spider curl": { u:"https://www.youtube.com/shorts/u70httHwyh0", c:"Tutorial" },
+  "Wide-grip EZ-bar curl": { u:"https://www.youtube.com/watch?v=SDFZBaJcTsU", c:"Tutorial" },
+  "Reverse curl": { u:"https://www.youtube.com/shorts/0WZ6scZ0cLc", c:"Tutorial" },
+  "Zottman curl": { u:"https://www.youtube.com/shorts/CUyil5rSf4E", c:"Tutorial" },
+
+  // ---- SAT · Push (moderate, different selection) ----
+  "Incline cable press": { u:"https://www.youtube.com/shorts/2-qFCRzxkNs", c:"Tutorial" },
+  "Incline machine press": { u:"https://www.youtube.com/shorts/-QRu-lMwh4k", c:"Tutorial" },
+  "High-to-low cable fly reversed": { u:"https://www.youtube.com/shorts/MEZ8UPbOO08", c:"Tutorial" },
+  "Machine chest press": { u:"https://www.youtube.com/shorts/Qu7-ceCvq7w", c:"Tutorial" },
+  "Pec deck": { u:"https://www.youtube.com/shorts/a9vQ_hwIksU", c:"Tutorial" },
+  "Weighted push-up": { u:"https://www.youtube.com/shorts/1ORmg8elUxI", c:"Tutorial" },
+  "Bodyweight dips": { u:"https://www.youtube.com/shorts/AlQ13funQ6Q", c:"Tutorial" },
+  "Decline cable fly": { u:"https://www.youtube.com/watch?v=TR4FdOs_7PY", c:"Tutorial" },
+  "Decline machine press": { u:"https://www.youtube.com/watch?v=_DsWm45BCqg", c:"Tutorial" },
+  "Plate front raise": { u:"https://www.youtube.com/shorts/1A0V_wpcjN8", c:"Tutorial" },
+  "Cable front raise": { u:"https://www.youtube.com/shorts/yizc2VHp-7w", c:"Tutorial" },
+  "Machine lateral raise": { u:"https://www.youtube.com/shorts/AydmHFgOn6U", c:"Tutorial" },
+  "Leaning DB lateral": { u:"https://www.youtube.com/shorts/HeovYNoZDRg", c:"Tutorial" },
+  "Cable Y-raise": { u:"https://www.youtube.com/shorts/tDjDXvEHvEo", c:"Tutorial" },
+  "Overhead rope extension": { u:"https://www.youtube.com/shorts/ZtauKLDQReE", c:"Tutorial" },
+  "DB French press": { u:"https://www.youtube.com/shorts/GLtJBm_Id6U", c:"Tutorial" },
+  "Cable kickback (triceps)": { u:"https://www.youtube.com/shorts/gMIgLT4QYk8", c:"Jay Cutler" },
+  "V-bar pushdown": { u:"https://www.youtube.com/shorts/v945-5iVs1s", c:"Tutorial" },
+  "Single-arm cable pushdown": { u:"https://www.youtube.com/watch?v=Oy4-uJ35cQQ", c:"Tutorial" },
+  "Reverse-grip cable pushdown": { u:"https://www.youtube.com/watch?v=2iucJbf0YOg", c:"Tutorial" },
+  "Close-grip push-up": { u:"https://www.youtube.com/shorts/xTq_gg8F9Gs", c:"Tutorial" },
+  "Tate press": { u:"https://www.youtube.com/shorts/Sj63H6w6MTs", c:"Tutorial" },
+
+  // ---- SUN · Pull (heavy) ----
+  "Heavy lat pulldown": { u:"https://www.youtube.com/shorts/5Hjhg43P5vE", c:"Jeff Nippard" },
+  "Pendlay row": { u:"https://www.youtube.com/shorts/0PSfteHhUtg", c:"Tutorial" },
+  "Barbell row": { u:"https://www.youtube.com/shorts/Zk2aJrwJm5M", c:"Tutorial" },
+  "Heavy T-bar row": { u:"https://www.youtube.com/shorts/1iQSSqin3ro", c:"Tutorial" },
+  "Meadows row": { u:"https://www.youtube.com/shorts/wIbxk0zD3xM", c:"John Meadows" },
+  "Heavy BB shrug": { u:"https://www.youtube.com/shorts/iIETxU3Juko", c:"Tutorial" },
+  "Snatch-grip high pull": { u:"https://www.youtube.com/shorts/Ol-3uiIJIs4", c:"Tutorial" },
+  "Deadlift": { u:"https://www.youtube.com/shorts/ZaTM37cfiDs", c:"Jeff Nippard" },
+  "Rack pull": { u:"https://www.youtube.com/shorts/EpXe4wu2Ywo", c:"Tutorial" },
+  "Weighted back extension": { u:"https://www.youtube.com/shorts/YuvdOeLg7gM", c:"Tutorial" },
+  "Heavy reverse pec deck": { u:"https://www.youtube.com/shorts/BmJHBBZRpZg", c:"Tutorial" },
+  "Cable rear-delt row": { u:"https://www.youtube.com/shorts/TvJyOe9b154", c:"Tutorial" },
+  "Face pull (heavy)": { u:"https://www.youtube.com/shorts/j0vWz7hoEOE", c:"Jeff Nippard" },
+  "Heavy incline DB curl": { u:"https://www.youtube.com/shorts/uCUaRFlA9vE", c:"Tutorial" },
+  "Heavy hammer curl": { u:"https://www.youtube.com/shorts/NyW2fT2gQhM", c:"Tutorial" },
+  "Drag curl": { u:"https://www.youtube.com/shorts/VRWwVxEP2zY", c:"Tutorial" },
+  "Heavy barbell curl": { u:"https://www.youtube.com/shorts/dIAxyJimXnA", c:"Tutorial" },
+  "Heavy preacher curl": { u:"https://www.youtube.com/shorts/iKgfqFkdeWY", c:"Tutorial" },
+  "EZ-bar curl": { u:"https://www.youtube.com/watch?v=SDFZBaJcTsU", c:"Tutorial" },
+  "Reverse BB curl": { u:"https://www.youtube.com/shorts/0WZ6scZ0cLc", c:"Tutorial" },
+  "Wrist curl": { u:"https://www.youtube.com/shorts/xY8c6LcLRao", c:"Tutorial" },
+
+  // ---- ABS · circuit (Wed + Sat) ----
+  "Cable crunch": { u:"https://www.youtube.com/shorts/bd63yN6g_9w", c:"Tutorial" },
+  "Weighted decline crunch": { u:"https://www.youtube.com/shorts/trZCoEeKj-Q", c:"Tutorial" },
+  "V-up": { u:"https://www.youtube.com/shorts/wDyWp8A8ZV0", c:"Tutorial" },
+  "Hanging leg raise": { u:"https://www.youtube.com/watch?v=g7hssQDruXw", c:"Tutorial" },
+  "Reverse crunch": { u:"https://www.youtube.com/shorts/2rkmoJf0Iqc", c:"Tutorial" },
+  "Toes-to-bar": { u:"https://www.youtube.com/shorts/WvIgFyIrChA", c:"Tutorial" },
+  "Hanging oblique knee raise": { u:"https://www.youtube.com/watch?v=L1rt7qr5LCk", c:"Tutorial" },
+  "Cable woodchop": { u:"https://www.youtube.com/shorts/suSEgI6VpBg", c:"Tutorial" },
+  "Side plank hip dips": { u:"https://www.youtube.com/shorts/PJe4tLUlLqw", c:"Tutorial" }
+};
+
+function linkFor(name){
+  const v = VIDEOS[name];
+  if(v) return v;
+  const q = encodeURIComponent(name + " exercise technique");
+  return { u:"https://www.youtube.com/results?search_query="+q, c:"Search ▸" };
+}
+
+/* ============================================================
+   PROFILE + TDEE
+   ============================================================ */
+const PROFILE = {
+  height_in: 69,   // 5'9"
+  height_cm: 175,
+  weight_lb: 175,
+  weight_kg: 79.4,
+  age: 25,
+  sex: "Male"
+};
+// Mifflin-St Jeor: BMR = 10·kg + 6.25·cm − 5·age + 5 (male)
+const BMR = Math.round(10*PROFILE.weight_kg + 6.25*PROFILE.height_cm - 5*PROFILE.age + 5);
+const SEDENTARY = Math.round(BMR * 1.2);  // baseline (no walking, no workout)
+
+// Per-day workout burn estimates (kcal), based on ~80kg + MET values for the work performed
+const DAY_BURN = {
+  Mon: { label:"Legs · Heavy lift",     kcal:430, color:"var(--heavy)" },
+  Tue: { label:"Push · Heavy lift",     kcal:360, color:"var(--heavy)" },
+  Wed: { label:"Pull moderate + abs",   kcal:400, color:"var(--moderate)" },
+  Thu: { label:"Treadmill intervals",   kcal:450, color:"var(--run)" },
+  Fri: { label:"Rest",                  kcal:0,   color:"var(--rest)" },
+  Sat: { label:"Push moderate + abs",   kcal:400, color:"var(--moderate)" },
+  Sun: { label:"Pull · Heavy lift",     kcal:400, color:"var(--heavy)" }
+};
+const WEEKLY_BURN = Object.values(DAY_BURN).reduce((a,b)=>a+b.kcal,0);
+const WEEKLY_TDEE = SEDENTARY*7 + WEEKLY_BURN;
+const DAILY_AVG = Math.round(WEEKLY_TDEE / 7);
+
+/* ============================================================
+   SCHEDULE DATA
+   ============================================================ */
+const SCHEMES = {
+  Heavy:    { sets:"4 sets", reps:"4–6 reps", rest:"3 min rest" },
+  Moderate: { sets:"3 sets", reps:"8–12 reps", rest:"60–90 sec rest" }
+};
+
+const DAYS = [
+  { dow:"Mon", focus:"Legs", intensity:"Heavy", type:"heavy", color:"var(--heavy)", groups:[
+    ["Quads (overall)", ["Hack squat","Pendulum squat","Leg press"]],
+    ["Quads (teardrop / VMO)", ["Bulgarian split squat","Sissy squat","Heels-elevated narrow squat"]],
+    ["Hamstrings", ["Seated leg curl","Romanian deadlift","Nordic curl"]],
+    ["Glutes", ["Hip thrust","Bulgarian split squat","Cable kickback"]],
+    ["Calves (gastroc)", ["Standing calf raise","Smith standing calf raise","Leg press calf raise"]],
+    ["Calves (soleus)", ["Seated calf raise","Bent-knee calf raise","Tibialis raise (antagonist)"]]
+  ]},
+  { dow:"Tue", focus:"Push", intensity:"Heavy", type:"heavy", color:"var(--heavy)", groups:[
+    ["Chest (upper)", ["Incline DB press","Low-to-high cable fly","Incline Smith press"]],
+    ["Chest (mid)", ["Flat DB press","Machine chest press (plate-loaded)","Flat barbell bench"]],
+    ["Chest (lower)", ["Weighted dips (chest-leaning)","Decline DB press","High-to-low cable fly"]],
+    ["Shoulders (front)", ["Overhead press","Seated DB press","Landmine press"]],
+    ["Shoulders (side)", ["Cable lateral raise (behind back)","DB lateral raise","Lu raise"]],
+    ["Triceps (long head)", ["Overhead cable extension (rope)","Incline DB skull crusher","Cross-body cable extension"]],
+    ["Triceps (lateral)", ["Rope pushdown","Straight-bar pushdown","Close-grip bench press"]],
+    ["Triceps (medial)", ["Reverse-grip pushdown","Diamond push-up","Bench dips"]]
+  ]},
+  { dow:"Wed", focus:"Pull + Abs", intensity:"Moderate", type:"moderate", color:"var(--moderate)", groups:[
+    ["Back (lats — width)", ["Lat pulldown (neutral grip)","Weighted pull-up","Straight-arm pulldown"]],
+    ["Back (lats — thickness)", ["Chest-supported T-bar row","Single-arm DB row","Cable row (neutral)"]],
+    ["Back (traps)", ["DB shrug","Trap-bar shrug","Face pull"]],
+    ["Rear delts", ["Reverse pec deck","Cable rear-delt fly (high-to-low)","Bent-over DB fly"]],
+    ["Biceps (long head)", ["Incline DB curl","Bayesian cable curl","Hammer curl"]],
+    ["Biceps (short head)", ["Preacher curl","Spider curl","Wide-grip EZ-bar curl"]],
+    ["Forearms", ["Hammer curl","Reverse curl","Zottman curl"]],
+    ["💥 Abs — finisher circuit", null, "3 rounds · all 9 exercises back-to-back, NO rest · 60–90 sec rest only between rounds"],
+    ["Abs (upper)", ["Cable crunch","Weighted decline crunch","V-up"]],
+    ["Abs (lower)", ["Hanging leg raise","Reverse crunch","Toes-to-bar"]],
+    ["Abs (obliques)", ["Hanging oblique knee raise","Cable woodchop","Side plank hip dips"]]
+  ]},
+  { dow:"Thu", focus:"Running", intensity:"Intervals", type:"intervals", color:"var(--run)", running:{
+    goal:"Treadmill intervals to build anaerobic capacity + cardio engine for kickboxing class. Progress through phases over ~6 weeks. (Baseline reference: easy = 5 mph, hard = 7–8 mph, sprint = 9–10 mph. Tune to your fitness.)",
+    warmup:"5 min walk @ 3.5 mph → 5 min easy jog @ 5 mph to get HR up.",
+    main:[
+      ["Phase 1 · VO₂max base (Wk 1–2)","6 rounds. Each round = run 2 min @ 7 mph, then walk 90 sec @ 3 mph. ~22 min total. Raises aerobic ceiling."],
+      ["Phase 2 · Anaerobic capacity (Wk 3–4)","10 rounds. Each round = sprint 30 sec @ 9–10 mph, then walk 60 sec @ 3 mph. ~15 min total. Trains short-burst power — exact combo demand."],
+      ["Phase 3 · Hill sprints (Wk 5)","8 rounds. Each round = run 45 sec @ 6 mph at 8% incline, then drop to 0% and walk 75 sec @ 3 mph. ~16 min total. Builds leg drive + lactate tolerance."],
+      ["Phase 4 · Pyramid (Wk 6+)","Sprint @ 8–9 mph for 30s → 45s → 60s → 90s → 60s → 45s → 30s. After each sprint, walk @ 3 mph for the SAME duration you just sprinted. ~12 min total. Mimics class round variability."]
+    ],
+    cooldown:"5 min walk @ 3 mph → stretch calves, hip flexors, hamstrings, shoulders."
+  }},
+  { dow:"Fri", focus:"Rest", intensity:"Rest", type:"rest", color:"var(--rest)", rest:true },
+  { dow:"Sat", focus:"Push + Abs", intensity:"Moderate", type:"moderate", color:"var(--moderate)", groups:[
+    ["Chest (upper)", ["Incline cable press","Incline machine press","High-to-low cable fly reversed"]],
+    ["Chest (mid)", ["Machine chest press","Pec deck","Weighted push-up"]],
+    ["Chest (lower)", ["Bodyweight dips","Decline cable fly","Decline machine press"]],
+    ["Shoulders (front)", ["Seated DB press","Plate front raise","Cable front raise"]],
+    ["Shoulders (side)", ["Machine lateral raise","Leaning DB lateral","Cable Y-raise"]],
+    ["Triceps (long head)", ["Overhead rope extension","DB French press","Cable kickback (triceps)"]],
+    ["Triceps (lateral)", ["V-bar pushdown","Single-arm cable pushdown","Reverse-grip cable pushdown"]],
+    ["Triceps (medial)", ["Close-grip push-up","Bench dips","Tate press"]],
+    ["💥 Abs — finisher circuit", null, "3 rounds · all 9 exercises back-to-back, NO rest · 60–90 sec rest only between rounds"],
+    ["Abs (upper)", ["Cable crunch","Weighted decline crunch","V-up"]],
+    ["Abs (lower)", ["Hanging leg raise","Reverse crunch","Toes-to-bar"]],
+    ["Abs (obliques)", ["Hanging oblique knee raise","Cable woodchop","Side plank hip dips"]]
+  ]},
+  { dow:"Sun", focus:"Pull", intensity:"Heavy", type:"heavy", color:"var(--heavy)", groups:[
+    ["Back (lats — width)", ["Weighted pull-up","Heavy lat pulldown","Pendlay row"]],
+    ["Back (lats — thickness)", ["Barbell row","Heavy T-bar row","Meadows row"]],
+    ["Back (traps)", ["Heavy BB shrug","Trap-bar shrug","Snatch-grip high pull"]],
+    ["Back (lower back)", ["Deadlift","Rack pull","Weighted back extension"]],
+    ["Rear delts", ["Heavy reverse pec deck","Cable rear-delt row","Face pull (heavy)"]],
+    ["Biceps (long head)", ["Heavy incline DB curl","Heavy hammer curl","Drag curl"]],
+    ["Biceps (short head)", ["Heavy barbell curl","Heavy preacher curl","EZ-bar curl"]],
+    ["Forearms", ["Heavy hammer curl","Reverse BB curl","Wrist curl"]]
+  ]}
+];
+
+/* ============================================================
+   RENDER
+   ============================================================ */
+const PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const grid = document.getElementById('grid');
+
+function chipClass(t){ return t; }
+
+function detailHTML(d){
+  if(d.rest){
+    return `<div class="rest-msg"><div class="big">🌙</div><div class="lbl">Rest day</div>
+            <div style="margin-top:6px">Recover, eat, sleep. Light walk optional.</div></div>`;
+  }
+  if(d.running){
+    let out = "";
+    if(d.running.goal){
+      out += `<div class="run-block"><div class="k">Goal</div><div class="opt" style="border-color:rgba(176,123,255,.4)">${d.running.goal}</div></div>`;
+    }
+    out += `<div class="run-block"><div class="k">Warm-up</div><div class="opt">${d.running.warmup}</div></div>`;
+    out += `<div class="run-block"><div class="k">Main — progress through phases</div>`;
+    d.running.main.forEach(m => out += `<div class="opt">${m[0]}<small>${m[1]}</small></div>`);
+    out += `</div>`;
+    out += `<div class="run-block"><div class="k">Cool-down</div><div class="opt">${d.running.cooldown}</div></div>`;
+    return out;
+  }
+  const s = SCHEMES[d.intensity];
+  let out = `<div class="scheme">
+      <div class="box"><div class="k">Intensity</div><div class="v" style="color:${d.color}">${d.intensity}</div></div>
+      <div class="box"><div class="k">Volume</div><div class="v">${s.sets} <small>× ${s.reps}</small></div></div>
+      <div class="box"><div class="k">Rest</div><div class="v">${s.rest}</div></div>
+    </div>`;
+  d.groups.forEach(g => {
+    if(g[1] === null){
+      out += `<div class="section-note">${g[0]}<small>${g[2]||""}</small></div>`;
+      return;
+    }
+    out += `<div class="muscle"><h3><span class="dot"></span>${g[0]}</h3>`;
+    g[1].forEach(name => {
+      const v = linkFor(name);
+      out += `<a class="ex" href="${v.u}" target="_blank" rel="noopener">
+                <span><span class="name">${name}</span><br><span class="src">▶ ${v.c}</span></span>
+                <span class="play">${PLAY}</span>
+              </a>`;
+    });
+    out += `</div>`;
+  });
+  return out;
+}
+
+/* render stats card */
+(function renderStats(){
+  const el = document.getElementById('stats');
+  const heavyDays = ["Mon","Tue","Sun"].map(d=>`${d} ${DAY_BURN[d].kcal}`).join(" · ");
+  const dayRows = Object.entries(DAY_BURN).map(([dow,d])=>{
+    const total = d.kcal === 0 ? SEDENTARY : SEDENTARY + d.kcal;
+    return `<div class="day-burn">
+      <span class="lbl"><span class="dot2" style="background:${d.color}"></span><span><span class="focus2">${dow}</span><span class="note">${d.label}</span></span></span>
+      <span class="val">${total.toLocaleString()}<span class="b"> kcal</span></span>
+    </div>`;
+  }).join("");
+
+  el.innerHTML = `
+    <div class="stats-row">
+      <div>
+        <div class="col-k">Your profile</div>
+        <div class="profile-v">5'9" · 175 lb · 25 · M</div>
+        <div class="profile-sub">${PROFILE.height_cm} cm · ${PROFILE.weight_kg} kg</div>
+      </div>
+      <div class="kcal">
+        <div class="col-k">Daily burn (avg)</div>
+        <div class="kcal-big">~${DAILY_AVG.toLocaleString()}<span class="u">kcal</span></div>
+        <div class="kcal-sub">tap for breakdown</div>
+      </div>
+    </div>
+    <div class="caret">▼</div>
+    <div class="stats-detail">
+      <div class="stats-tri">
+        <div class="box"><div class="k">BMR</div><div class="v">${BMR.toLocaleString()} <small>kcal</small></div></div>
+        <div class="box"><div class="k">Sedentary</div><div class="v">${SEDENTARY.toLocaleString()} <small>kcal</small></div></div>
+        <div class="box"><div class="k">Weekly avg</div><div class="v">${DAILY_AVG.toLocaleString()} <small>kcal</small></div></div>
+      </div>
+      ${dayRows}
+      <div class="stats-foot">
+        Numbers = <b>sedentary baseline (${SEDENTARY.toLocaleString()})</b> + workout kcal. Estimates ±10%.<br>
+        Maintain: ~${DAILY_AVG.toLocaleString()} kcal/day · Cut: ~${(DAILY_AVG-500).toLocaleString()} · Lean bulk: ~${(DAILY_AVG+300).toLocaleString()}.<br>
+        Protein target: <b>~${PROFILE.weight_lb}g/day</b> (1g per lb bodyweight).
+      </div>
+    </div>`;
+  el.addEventListener('click', () => el.classList.toggle('open'));
+})();
+
+DAYS.forEach((d,i) => {
+  const card = document.createElement('div');
+  card.className = 'day' + (d.rest ? ' full' : '');
+  card.style.setProperty('--bar', d.color);
+  card.innerHTML = `
+    <div class="dow">${d.dow}</div>
+    <div class="focus">${d.focus}</div>
+    <div class="meta"><span class="chip ${chipClass(d.type)}">${d.intensity}</span></div>
+    ${d.rest ? '' : '<div class="caret">▼</div>'}`;
+  const detail = document.createElement('div');
+  detail.className = 'detail';
+  detail.innerHTML = `<div class="panel" style="--bar:${d.color}">${detailHTML(d)}</div>`;
+
+  card.addEventListener('click', () => {
+    const isOpen = detail.classList.contains('show');
+    // close all
+    document.querySelectorAll('.detail.show').forEach(e => e.classList.remove('show'));
+    document.querySelectorAll('.day.open').forEach(e => e.classList.remove('open'));
+    if(!isOpen){
+      detail.classList.add('show');
+      card.classList.add('open');
+      setTimeout(()=>card.scrollIntoView({behavior:'smooth', block:'start'}), 60);
+    }
+  });
+
+  grid.appendChild(card);
+  grid.appendChild(detail);
+});
+</script>
+</body>
+</html>
