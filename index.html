@@ -205,6 +205,43 @@
   .goal-tip{margin-top:15px; padding:11px 13px; background:rgba(176,123,255,.07); border:1px solid rgba(176,123,255,.25); border-radius:12px; font-size:.78rem; color:var(--txt); line-height:1.55;}
   .goal-tip b{color:var(--run); font-weight:700;}
 
+  /* ---- meal plan (Fuel) ---- */
+  .fuel-head{display:flex; align-items:center; justify-content:space-between; margin:4px 4px 12px;}
+  .fuel-head h2{font-size:1.15rem; font-weight:900; letter-spacing:-.03em; margin:0;}
+  .fuel-head .h-sub{font-family:var(--font-mono); font-size:.62rem; color:var(--muted2); letter-spacing:.08em; text-transform:uppercase;}
+  .meal{
+    border:1px solid var(--line); border-radius:var(--radius); background:var(--card);
+    margin-bottom:11px; overflow:hidden; transition:border-color .2s ease;
+  }
+  .meal.open{border-color:var(--accent);}
+  .meal-bar{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:15px 16px; cursor:pointer;}
+  .meal-bar:active{background:var(--card2);}
+  .meal-bar .mt{display:flex; align-items:center; gap:11px;}
+  .meal-bar .emoji{font-size:1.25rem;}
+  .meal-bar .mtitle{font-size:1.02rem; font-weight:800; letter-spacing:-.01em;}
+  .meal-bar .mtarget{font-family:var(--font-mono); font-size:.6rem; color:var(--muted2); letter-spacing:.04em; margin-top:2px;}
+  .meal-bar .mcaret{color:var(--muted2); font-size:.72rem; transition:transform .25s ease;}
+  .meal.open .meal-bar .mcaret{transform:rotate(180deg); color:var(--accent);}
+  .meal-body{display:none; padding:0 13px 13px;}
+  .meal.open .meal-body{display:block; animation:fade .24s ease;}
+  .opt-card{background:var(--bg2); border:1px solid var(--line); border-radius:13px; padding:13px 14px; margin-bottom:9px;}
+  .opt-card:last-child{margin-bottom:2px;}
+  .opt-head{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:8px;}
+  .opt-name{font-weight:800; font-size:.95rem; letter-spacing:-.01em;}
+  .opt-name .ona{font-family:var(--font-mono); font-size:.6rem; color:var(--accent); font-weight:700; margin-right:7px;}
+  .opt-kcal{font-family:var(--font-mono); font-size:.74rem; font-weight:700; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums;}
+  .opt-items{list-style:none; margin:0 0 10px; padding:0;}
+  .opt-items li{font-size:.85rem; color:var(--txt); padding:3px 0 3px 16px; position:relative; line-height:1.4;}
+  .opt-items li::before{content:""; position:absolute; left:2px; top:10px; width:4px; height:4px; border-radius:50%; background:var(--muted2);}
+  .opt-items li .amt{color:var(--muted); font-family:var(--font-mono); font-size:.78rem;}
+  .mmac{display:flex; gap:6px; flex-wrap:wrap;}
+  .mmac .pill{font-family:var(--font-mono); font-size:.64rem; font-weight:700; padding:3px 8px; border-radius:6px; letter-spacing:.02em;}
+  .mmac .pill.p{color:#ff8da3; background:rgba(255,93,108,.12);}
+  .mmac .pill.c{color:#5fb6ff; background:rgba(77,159,255,.12);}
+  .mmac .pill.f{color:#ffc861; background:rgba(245,166,35,.12);}
+  .fuel-foot{margin:4px 2px 0; padding:13px 15px; background:rgba(74,222,128,.06); border:1px solid rgba(74,222,128,.22); border-radius:13px; font-size:.8rem; line-height:1.55; color:var(--txt);}
+  .fuel-foot b{color:var(--accent); font-weight:700;}
+
   /* section banner (e.g. abs circuit) */
   .section-note{
     margin:22px 0 11px; padding:13px 15px;
@@ -240,6 +277,12 @@
 <div class="goal" id="goal"></div>
 
 <div class="grid" id="grid"></div>
+
+<div class="fuel-head">
+  <h2>🍳 Fuel <span style="color:var(--accent)">·</span> Walmart Meal Plan</h2>
+  <span class="h-sub">3 options / meal</span>
+</div>
+<div id="meals"></div>
 
 <footer>
   <b>HEAVY</b> 4×4–6 · 3min rest &nbsp;·&nbsp; <b>MODERATE</b> 3×8–12 · 60–90s rest<br>
@@ -437,6 +480,93 @@ const MACROS = [
 const MACRO_KCAL_TOTAL = MACROS.reduce((a,m)=>a+m.kcal,0);
 
 /* ============================================================
+   WALMART MEAL PLAN — 3 swappable options per meal.
+   Macros per option ≈ that meal's target, so any combo
+   across the week lands near 185P / 275C / 70F / ~2,470 kcal.
+   Products: Great Value (GV) + brands Walmart carries.
+   ============================================================ */
+const MEALS = [
+  { emoji:"🍳", meal:"Breakfast", target:"~45P · 60C · 18F · 570 kcal", options:[
+    { n:"A", name:"Oats, Eggs & Yogurt", items:[
+        ["GV Old Fashioned Oats","½ cup dry"],
+        ["GV Large Eggs","3 whole"],
+        ["GV Plain Nonfat Greek Yogurt","¾ cup"],
+        ["Banana","1 medium"]
+      ], p:45, c:62, f:18, kcal:575 },
+    { n:"B", name:"Greek Yogurt Power Bowl", items:[
+        ["GV Plain Nonfat Greek Yogurt","1½ cups"],
+        ["GV Old Fashioned Oats","½ cup dry"],
+        ["GV Creamy Peanut Butter","2 tbsp"],
+        ["Banana","½"]
+      ], p:46, c:60, f:19, kcal:580 },
+    { n:"C", name:"Shake, Eggs & Toast", items:[
+        ["Premier Protein Shake","1 (30g)"],
+        ["GV Large Eggs","2 whole"],
+        ["GV 100% Whole Wheat Bread","2 slices"],
+        ["Banana","1 medium"]
+      ], p:47, c:62, f:15, kcal:560 }
+  ]},
+  { emoji:"🍗", meal:"Lunch", target:"~52P · 66C · 13F · 630 kcal", options:[
+    { n:"A", name:"Chicken & Rice Bowl", items:[
+        ["GV Boneless Skinless Chicken Breast","6 oz cooked"],
+        ["GV Long Grain White Rice","1 cup cooked"],
+        ["GV Frozen Mixed Vegetables","1 cup"],
+        ["Olive oil","1 tsp"]
+      ], p:55, c:63, f:12, kcal:620 },
+    { n:"B", name:"Double Tuna Sandwich", items:[
+        ["GV Chunk Light Tuna (5 oz can)","2 cans, drained"],
+        ["GV 100% Whole Wheat Bread","3 slices"],
+        ["Light mayo","1 tbsp"],
+        ["Apple","1"]
+      ], p:57, c:70, f:13, kcal:650 },
+    { n:"C", name:"Turkey & Bean Bowl", items:[
+        ["93/7 Lean Ground Turkey","6 oz cooked"],
+        ["GV Long Grain White Rice","1 cup cooked"],
+        ["GV Black Beans","½ cup"],
+        ["Salsa","to taste"]
+      ], p:51, c:66, f:14, kcal:620 }
+  ]},
+  { emoji:"🍝", meal:"Dinner", target:"~50P · 80C · 21F · 720 kcal", options:[
+    { n:"A", name:"Chicken, Rice & Avocado", items:[
+        ["GV Boneless Skinless Chicken Breast","6 oz cooked"],
+        ["GV Long Grain White Rice","1½ cups cooked"],
+        ["Avocado","¼"],
+        ["GV Frozen Vegetables","1 cup"]
+      ], p:58, c:84, f:20, kcal:730 },
+    { n:"B", name:"Turkey Marinara Pasta", items:[
+        ["93/7 Lean Ground Turkey","6 oz cooked"],
+        ["GV Pasta","3 oz dry"],
+        ["GV Marinara Sauce","½ cup"],
+        ["Grated parmesan","2 tbsp"]
+      ], p:52, c:74, f:18, kcal:700 },
+    { n:"C", name:"Tilapia & Potato", items:[
+        ["GV Frozen Tilapia Fillets","8 oz cooked"],
+        ["Large baked potato","1"],
+        ["GV Frozen Vegetables","1 cup"],
+        ["Olive oil","1 tbsp"]
+      ], p:48, c:72, f:19, kcal:680 }
+  ]},
+  { emoji:"🥤", meal:"Snack", target:"~38P · 54C · 15F · 520 kcal", options:[
+    { n:"A", name:"Shake + PB Toast", items:[
+        ["Premier Protein Shake","1 (30g)"],
+        ["GV 100% Whole Wheat Bread","1 slice"],
+        ["GV Creamy Peanut Butter","1 tbsp"],
+        ["Banana","1"]
+      ], p:38, c:52, f:14, kcal:505 },
+    { n:"B", name:"Yogurt & Granola Bowl", items:[
+        ["GV Plain Nonfat Greek Yogurt","1½ cups"],
+        ["GV Granola","⅓ cup"],
+        ["Frozen berries","½ cup"]
+      ], p:40, c:58, f:10, kcal:510 },
+    { n:"C", name:"Cottage Cheese & Almonds", items:[
+        ["GV Low-Fat Cottage Cheese","1¼ cups"],
+        ["GV Almonds","1 oz"],
+        ["Apple","1"]
+      ], p:38, c:45, f:20, kcal:520 }
+  ]}
+];
+
+/* ============================================================
    SCHEDULE DATA
    ============================================================ */
 const SCHEMES = {
@@ -592,6 +722,44 @@ function detailHTML(d){
       Put most carbs around lifts &amp; Thu intervals. Creatine 3–5g daily.
       Progress = mirror, waist tape &amp; lift numbers, <b>not</b> the scale.
     </div>`;
+})();
+
+/* render Walmart meal plan */
+(function renderMeals(){
+  const el = document.getElementById('meals');
+  if(!el) return;
+  el.innerHTML = MEALS.map(m=>{
+    const opts = m.options.map(o=>`
+      <div class="opt-card">
+        <div class="opt-head">
+          <span class="opt-name"><span class="ona">${o.n}</span>${o.name}</span>
+          <span class="opt-kcal">${o.kcal} kcal</span>
+        </div>
+        <ul class="opt-items">
+          ${o.items.map(it=>`<li>${it[0]} <span class="amt">— ${it[1]}</span></li>`).join("")}
+        </ul>
+        <div class="mmac">
+          <span class="pill p">${o.p}g protein</span>
+          <span class="pill c">${o.c}g carbs</span>
+          <span class="pill f">${o.f}g fat</span>
+        </div>
+      </div>`).join("");
+    return `<div class="meal">
+      <div class="meal-bar">
+        <span class="mt"><span class="emoji">${m.emoji}</span><span><span class="mtitle">${m.meal}</span><div class="mtarget">${m.target}</div></span></span>
+        <span class="mcaret">▼</span>
+      </div>
+      <div class="meal-body">${opts}</div>
+    </div>`;
+  }).join("") + `
+    <div class="fuel-foot">
+      <b>How to use it:</b> pick <b>one option from each meal</b> any day — they're interchangeable.
+      Any combo lands ~<b>185–195g protein · 260–275g carbs · 65–70g fat · ~2,450 kcal</b> (your maintenance).
+      Hit protein first; adjust rice/bread portions ±¼ to fine-tune.
+    </div>`;
+  el.querySelectorAll('.meal-bar').forEach(bar=>{
+    bar.addEventListener('click', ()=> bar.parentElement.classList.toggle('open'));
+  });
 })();
 
 /* render stats card */
