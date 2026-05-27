@@ -298,16 +298,16 @@
 
   /* floating cart tray */
   .tray{
-    position:fixed; left:50%; transform:translateX(-50%) translateY(140%);
+    position:fixed; left:50%; transform:translateX(-50%) translateY(12px);
     bottom:calc(84px + env(safe-area-inset-bottom)); width:calc(100% - 32px); max-width:688px;
     background:linear-gradient(180deg, #16261c, #0f1a13);
     border:1px solid rgba(74,222,128,.4); border-radius:16px;
     box-shadow:0 16px 50px -12px rgba(0,0,0,.7), 0 0 0 1px rgba(74,222,128,.15);
     padding:13px 15px; display:flex; align-items:center; justify-content:space-between; gap:12px;
-    z-index:50; transition:transform .35s cubic-bezier(.2,.8,.2,1);
-    pointer-events:none;
+    z-index:50; transition:transform .3s ease, opacity .3s ease, visibility .3s;
+    pointer-events:none; opacity:0; visibility:hidden;
   }
-  .tray.show{transform:translateX(-50%) translateY(0); pointer-events:auto;}
+  .tray.show{transform:translateX(-50%) translateY(0); pointer-events:auto; opacity:1; visibility:visible;}
   .tray .t-info{min-width:0;}
   .tray .t-count{font-weight:800; font-size:.95rem; letter-spacing:-.01em;}
   .tray .t-count b{color:var(--accent);}
@@ -412,8 +412,8 @@
   .logger-actions .rest{background:var(--bg2); color:var(--txt); border:1px solid var(--line2);}
 
   /* floating rest timer */
-  .rtimer{position:fixed; left:50%; transform:translateX(-50%) translateY(160%); bottom:calc(84px + env(safe-area-inset-bottom)); z-index:55; background:linear-gradient(180deg,#1a1330,#120c22); border:1px solid rgba(176,123,255,.45); border-radius:16px; box-shadow:0 16px 50px -12px rgba(0,0,0,.7); padding:12px 16px; display:flex; align-items:center; gap:14px; transition:transform .35s cubic-bezier(.2,.8,.2,1); pointer-events:none;}
-  .rtimer.show{transform:translateX(-50%) translateY(0); pointer-events:auto;}
+  .rtimer{position:fixed; left:50%; transform:translateX(-50%) translateY(12px); bottom:calc(84px + env(safe-area-inset-bottom)); z-index:55; background:linear-gradient(180deg,#1a1330,#120c22); border:1px solid rgba(176,123,255,.45); border-radius:16px; box-shadow:0 16px 50px -12px rgba(0,0,0,.7); padding:12px 16px; display:flex; align-items:center; gap:14px; transition:transform .3s ease, opacity .3s ease, visibility .3s; pointer-events:none; opacity:0; visibility:hidden;}
+  .rtimer.show{transform:translateX(-50%) translateY(0); pointer-events:auto; opacity:1; visibility:visible;}
   .rtimer .rt-time{font-family:var(--font-mono); font-size:1.6rem; font-weight:800; color:var(--run); font-variant-numeric:tabular-nums; min-width:74px; text-align:center;}
   .rtimer .rt-time.done{color:var(--accent); animation:pulse .6s ease 3;}
   @keyframes pulse{50%{opacity:.4;}}
