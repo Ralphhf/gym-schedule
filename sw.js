@@ -1,6 +1,6 @@
 // Simple offline-first service worker for the gym app.
 // Bump CACHE version whenever you want clients to refresh the shell.
-const CACHE = "split-v1";
+const CACHE = "split-v2";
 const ASSETS = [
   "./",
   "./index.html",

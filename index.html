@@ -54,6 +54,34 @@
   .week-dots .wd.done{background:var(--muted2);}
   .week-dots .wd.today{background:var(--accent); width:22px; border-radius:4px; box-shadow:0 0 12px rgba(74,222,128,.5);}
 
+  /* ---- tab layout ---- */
+  body{padding-bottom:calc(82px + env(safe-area-inset-bottom));}  /* clear bottom nav */
+  main{display:block;}
+  .tabp{display:none; animation:fade .25s ease;}
+  .tabp.active{display:block;}
+  .tab-title{font-size:1.45rem; font-weight:900; letter-spacing:-.035em; margin:6px 4px 16px; line-height:1;}
+  .tab-title .ts{display:block; font-family:var(--font-mono); font-size:.62rem; font-weight:500; letter-spacing:.12em; text-transform:uppercase; color:var(--muted2); margin-top:7px;}
+  /* extra breathing room between stacked cards */
+  .tabp > .stats, .tabp > .goal, .tabp > .track, .tabp > .pr-card, .tabp > .data-card{margin-bottom:20px;}
+
+  /* bottom tab bar */
+  .tabbar{
+    position:fixed; left:0; right:0; bottom:0; z-index:45;
+    display:flex; background:rgba(10,10,16,.86); backdrop-filter:blur(16px) saturate(1.4);
+    border-top:1px solid var(--line);
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom)); gap:4px;
+  }
+  .tabbar button{
+    flex:1; background:none; border:none; color:var(--muted2); cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:3px; padding:7px 4px 5px;
+    border-radius:12px; transition:color .18s ease, background .18s ease;
+  }
+  .tabbar button .ti{font-size:1.25rem; line-height:1; filter:grayscale(1) opacity(.7); transition:filter .18s ease;}
+  .tabbar button .tl{font-family:var(--font-mono); font-size:.58rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;}
+  .tabbar button.active{color:var(--accent); background:rgba(74,222,128,.1);}
+  .tabbar button.active .ti{filter:none;}
+  .tabbar button:active{transform:scale(.94);}
+
   /* ---- day grid ---- */
   .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:6px;}
   .grid .full{grid-column:1 / -1;}
@@ -271,7 +299,7 @@
   /* floating cart tray */
   .tray{
     position:fixed; left:50%; transform:translateX(-50%) translateY(140%);
-    bottom:calc(16px + env(safe-area-inset-bottom)); width:calc(100% - 32px); max-width:688px;
+    bottom:calc(84px + env(safe-area-inset-bottom)); width:calc(100% - 32px); max-width:688px;
     background:linear-gradient(180deg, #16261c, #0f1a13);
     border:1px solid rgba(74,222,128,.4); border-radius:16px;
     box-shadow:0 16px 50px -12px rgba(0,0,0,.7), 0 0 0 1px rgba(74,222,128,.15);
@@ -383,7 +411,7 @@
   .logger-actions .rest{background:var(--bg2); color:var(--txt); border:1px solid var(--line2);}
 
   /* floating rest timer */
-  .rtimer{position:fixed; left:50%; transform:translateX(-50%) translateY(160%); bottom:calc(16px + env(safe-area-inset-bottom)); z-index:55; background:linear-gradient(180deg,#1a1330,#120c22); border:1px solid rgba(176,123,255,.45); border-radius:16px; box-shadow:0 16px 50px -12px rgba(0,0,0,.7); padding:12px 16px; display:flex; align-items:center; gap:14px; transition:transform .35s cubic-bezier(.2,.8,.2,1);}
+  .rtimer{position:fixed; left:50%; transform:translateX(-50%) translateY(160%); bottom:calc(84px + env(safe-area-inset-bottom)); z-index:55; background:linear-gradient(180deg,#1a1330,#120c22); border:1px solid rgba(176,123,255,.45); border-radius:16px; box-shadow:0 16px 50px -12px rgba(0,0,0,.7); padding:12px 16px; display:flex; align-items:center; gap:14px; transition:transform .35s cubic-bezier(.2,.8,.2,1);}
   .rtimer.show{transform:translateX(-50%) translateY(0);}
   .rtimer .rt-time{font-family:var(--font-mono); font-size:1.6rem; font-weight:800; color:var(--run); font-variant-numeric:tabular-nums; min-width:74px; text-align:center;}
   .rtimer .rt-time.done{color:var(--accent); animation:pulse .6s ease 3;}
@@ -426,6 +454,23 @@
   .data-msg{font-size:.78rem; margin-top:11px; line-height:1.5;}
   .data-msg.ok{color:var(--accent);} .data-msg.err{color:#ff8da3;}
 
+  /* ---- charts ---- */
+  .chart-card{border:1px solid var(--line); border-radius:var(--radius); background:var(--card); padding:15px 14px 13px; margin-bottom:16px;}
+  .chart-head{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px;}
+  .chart-head h3{font-size:.98rem; font-weight:800; letter-spacing:-.02em; margin:0;}
+  .chart-head .ch-sub{font-family:var(--font-mono); font-size:.6rem; color:var(--muted2); letter-spacing:.05em; text-transform:uppercase; margin-top:2px;}
+  .chart-sel{background:var(--bg2); color:var(--txt); border:1px solid var(--line2); border-radius:9px; padding:7px 9px; font-size:.78rem; font-family:var(--font-display); font-weight:600; max-width:48%;}
+  .chart-svg{width:100%; height:auto; display:block;}
+  .chart-svg text{font-family:var(--font-mono); fill:var(--muted2);}
+  .chart-empty{color:var(--muted); font-size:.82rem; text-align:center; padding:22px 10px; line-height:1.5;}
+  .chart-legend{display:flex; gap:14px; justify-content:center; margin-top:8px; font-family:var(--font-mono); font-size:.64rem; color:var(--muted);}
+  .chart-legend span{display:inline-flex; align-items:center; gap:6px;}
+  .chart-legend i{width:10px; height:3px; border-radius:2px; display:inline-block;}
+  /* body log input */
+  .body-log{display:flex; gap:8px; margin-top:12px;}
+  .body-log input{flex:1; min-width:0; background:var(--bg2); border:1px solid var(--line2); color:var(--txt); border-radius:9px; padding:9px 10px; font-size:.85rem; font-family:var(--font-mono); text-align:center; -webkit-appearance:none;}
+  .body-log button{flex:none; background:var(--accent); color:#06210f; border:none; border-radius:9px; padding:9px 14px; font-weight:800; font-size:.82rem; cursor:pointer;}
+
   /* section banner (e.g. abs circuit) */
   .section-note{
     margin:22px 0 11px; padding:13px 15px;
@@ -456,27 +501,55 @@
   <div class="week-dots" id="weekDots"></div>
 </header>
 
-<div class="stats" id="stats"></div>
+<main>
+  <!-- TRAIN -->
+  <section class="tabp active" id="tab-train">
+    <div class="tab-title">Train<span class="ts">Your weekly split · tap a day</span></div>
+    <div class="grid" id="grid"></div>
+    <div class="pr-card" id="prCard"></div>
+  </section>
 
-<div class="goal" id="goal"></div>
+  <!-- EAT -->
+  <section class="tabp" id="tab-eat">
+    <div class="tab-title">Eat<span class="ts">Goal, macros &amp; Walmart meal plan</span></div>
+    <div class="goal" id="goal"></div>
+    <div class="fuel-head">
+      <h2>🍳 Meal Plan</h2>
+      <div class="days-pick">
+        <button id="dMinus" aria-label="fewer days">−</button>
+        <span class="dval"><span id="dVal">3</span><small> days</small></span>
+        <button id="dPlus" aria-label="more days">+</button>
+      </div>
+    </div>
+    <div id="meals"></div>
+  </section>
 
-<div class="track" id="track"></div>
+  <!-- TRACK -->
+  <section class="tabp" id="tab-track">
+    <div class="tab-title">Track<span class="ts">Daily checks &amp; progress charts</span></div>
+    <div class="track" id="track"></div>
+    <div id="charts"></div>
+  </section>
 
-<div class="grid" id="grid"></div>
+  <!-- MORE -->
+  <section class="tabp" id="tab-more">
+    <div class="tab-title">More<span class="ts">Stats, calories burned &amp; backup</span></div>
+    <div class="stats" id="stats"></div>
+    <div class="data-card" id="dataCard"></div>
+    <footer>
+      <b>HEAVY</b> 4×4–6 · 3min rest &nbsp;·&nbsp; <b>MODERATE</b> 3×8–12 · 60–90s rest<br>
+      <div class="made">Tutorials from credible strength &amp; hypertrophy coaches</div>
+    </footer>
+  </section>
+</main>
 
-<div class="pr-card" id="prCard"></div>
-
-<div class="fuel-head">
-  <h2>🍳 Fuel <span style="color:var(--accent)">·</span> Meal Plan</h2>
-  <div class="days-pick">
-    <button id="dMinus" aria-label="fewer days">−</button>
-    <span class="dval"><span id="dVal">3</span><small> days</small></span>
-    <button id="dPlus" aria-label="more days">+</button>
-  </div>
-</div>
-<div id="meals"></div>
-
-<div class="data-card" id="dataCard"></div>
+<!-- bottom tab bar -->
+<nav class="tabbar" id="tabbar">
+  <button data-tab="train" class="active"><span class="ti">🏋️</span><span class="tl">Train</span></button>
+  <button data-tab="eat"><span class="ti">🍳</span><span class="tl">Eat</span></button>
+  <button data-tab="track"><span class="ti">📈</span><span class="tl">Track</span></button>
+  <button data-tab="more"><span class="ti">⚙️</span><span class="tl">More</span></button>
+</nav>
 
 <input type="file" id="importFile" accept="application/json,.json" style="display:none">
 
@@ -506,11 +579,6 @@
   </div>
   <button class="rt-x" id="rtClose">✕</button>
 </div>
-
-<footer>
-  <b>HEAVY</b> 4×4–6 · 3min rest &nbsp;·&nbsp; <b>MODERATE</b> 3×8–12 · 60–90s rest<br>
-  <div class="made">Tutorials from credible strength &amp; hypertrophy coaches</div>
-</footer>
 
 <script>
 /* ============================================================
@@ -1259,7 +1327,7 @@ renderPR();
 /* ============================================================
    DATA BACKUP — export / import / clear (localStorage JSON)
    ============================================================ */
-const BACKUP_KEYS = ['gs_logs','gs_daily','gs_cal'];
+const BACKUP_KEYS = ['gs_logs','gs_daily','gs_cal','gs_body'];
 function gatherData(){
   const data = {};
   BACKUP_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) data[k]=JSON.parse(v); });
@@ -1338,6 +1406,112 @@ function renderData(){
 }
 document.getElementById('importFile').addEventListener('change',e=>{ if(e.target.files[0]) importData(e.target.files[0]); });
 renderData();
+
+/* ============================================================
+   PROGRESS CHARTS (inline SVG, no library)
+   ============================================================ */
+const C_W=324, C_H=158, C_PL=38, C_PR=12, C_PT=14, C_PB=24;
+function _xAt(i,n){ const iw=C_W-C_PL-C_PR; return n<=1 ? C_PL+iw/2 : C_PL+(i/(n-1))*iw; }
+function _yAt(v,min,max){ const ih=C_H-C_PT-C_PB; const r=(max-min)||1; return C_PT+ih-((v-min)/r)*ih; }
+function svgLineChart(lines){ // lines:[{color,pts:[{v}]}]
+  let min=Infinity,max=-Infinity;
+  lines.forEach(l=>l.pts.forEach(p=>{ if(p.v<min)min=p.v; if(p.v>max)max=p.v; }));
+  if(!isFinite(min)){min=0;max=1;}
+  if(min===max){min-=1;max+=1;}
+  const pad=(max-min)*0.12; min-=pad; max+=pad;
+  const grid=[min,(min+max)/2,max].map(v=>`<line x1="${C_PL}" y1="${_yAt(v,min,max)}" x2="${C_W-C_PR}" y2="${_yAt(v,min,max)}" stroke="#23232f" stroke-width="1"/><text x="${C_PL-6}" y="${_yAt(v,min,max)+3}" text-anchor="end" font-size="9">${Math.round(v)}</text>`).join("");
+  const paths=lines.map(l=>{
+    const n=l.pts.length;
+    const pts=l.pts.map((p,i)=>`${_xAt(i,n).toFixed(1)},${_yAt(p.v,min,max).toFixed(1)}`).join(" ");
+    const dots=l.pts.map((p,i)=>`<circle cx="${_xAt(i,n).toFixed(1)}" cy="${_yAt(p.v,min,max).toFixed(1)}" r="2.6" fill="${l.color}"/>`).join("");
+    return `<polyline points="${pts}" fill="none" stroke="${l.color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>${dots}`;
+  }).join("");
+  return `<svg class="chart-svg" viewBox="0 0 ${C_W} ${C_H}">${grid}${paths}</svg>`;
+}
+function svgBarChart(values, baseline){
+  const max=Math.max(baseline*1.15, ...values, 1);
+  const min=0, n=values.length, iw=C_W-C_PL-C_PR, bw=Math.min(34, iw/Math.max(n,1)*0.6);
+  const grid=[0,baseline,max].map(v=>`<line x1="${C_PL}" y1="${_yAt(v,min,max)}" x2="${C_W-C_PR}" y2="${_yAt(v,min,max)}" stroke="${v===baseline?'#4ade80':'#23232f'}" stroke-width="1" stroke-dasharray="${v===baseline?'4 3':'0'}"/><text x="${C_PL-6}" y="${_yAt(v,min,max)+3}" text-anchor="end" font-size="9" ${v===baseline?'fill="#4ade80"':''}>${v>=1000?(v/1000).toFixed(1)+'k':Math.round(v)}</text>`).join("");
+  const bars=values.map((v,i)=>{
+    const x=_xAt(i,n)-bw/2, y=_yAt(v,min,max), h=C_PT+(C_H-C_PT-C_PB)-y;
+    const over=v>baseline;
+    return `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0,h).toFixed(1)}" rx="3" fill="${over?'#ff5d6c':'#4ade80'}" opacity="${over?.9:.85}"/>`;
+  }).join("");
+  return `<svg class="chart-svg" viewBox="0 0 ${C_W} ${C_H}">${grid}${bars}</svg>`;
+}
+
+function renderCharts(){
+  const host=document.getElementById('charts'); if(!host) return;
+  const logs=LS.get('gs_logs',{});
+  const lifts=Object.keys(logs).filter(n=>logs[n].some(s=>s.sets.some(x=>x.w>0&&x.r>0)));
+  const selPrev=document.getElementById('liftSel'); const selLift=selPrev?selPrev.value:(lifts[0]||'');
+
+  // ---- 1. strength ----
+  let strength;
+  if(!lifts.length){
+    strength=`<div class="chart-empty">Log a few sets in the Train tab — your strength trend appears here.</div>`;
+  }else{
+    const cur=lifts.includes(selLift)?selLift:lifts[0];
+    const pts=logs[cur].map(s=>{ let best=0; s.sets.forEach(x=>{ if(x.w>0&&x.r>0) best=Math.max(best,e1rm(x.w,x.r)); }); return {v:Math.round(best)}; }).filter(p=>p.v>0);
+    strength=`<select class="chart-sel" id="liftSel">${lifts.map(l=>`<option ${l===cur?'selected':''}>${l}</option>`).join("")}</select>
+      ${pts.length>=1?svgLineChart([{color:'#4ade80',pts}]):'<div class="chart-empty">Need at least one logged session.</div>'}
+      <div class="chart-legend"><span><i style="background:#4ade80"></i>est. 1-rep max over sessions</span></div>`;
+  }
+
+  // ---- 2. weekly calories ----
+  const cal=LS.get('gs_cal',{});
+  const weeks=Object.keys(cal).sort().slice(-8);
+  let calChart;
+  if(!weeks.length){
+    calChart=`<div class="chart-empty">Log daily calories in the Track tab — weekly totals show here vs your maintenance line.</div>`;
+  }else{
+    const vals=weeks.map(w=>Object.values(cal[w]).reduce((a,b)=>a+b,0));
+    calChart=svgBarChart(vals, WEEK_BUDGET)+`<div class="chart-legend"><span><i style="background:#4ade80"></i>under</span><span><i style="background:#ff5d6c"></i>over</span><span><i style="background:#4ade80;height:1px;width:14px;border-top:2px dashed"></i>maintenance</span></div>`;
+  }
+
+  // ---- 3. bodyweight + waist ----
+  const body=LS.get('gs_body',{});
+  const dates=Object.keys(body).sort();
+  let bodyChart;
+  if(dates.length<1){
+    bodyChart=`<div class="chart-empty">No entries yet. Log your weight + waist weekly below — the scale lies during recomp, the waist line tells the truth.</div>`;
+  }else{
+    const wPts=dates.map(d=>({v:body[d].w})).filter(p=>p.v>0);
+    const waistPts=dates.map(d=>({v:body[d].waist})).filter(p=>p.v>0);
+    const ls=[]; if(wPts.length)ls.push({color:'#4d9fff',pts:wPts}); if(waistPts.length)ls.push({color:'#ffc861',pts:waistPts});
+    bodyChart=svgLineChart(ls)+`<div class="chart-legend"><span><i style="background:#4d9fff"></i>bodyweight (lb)</span><span><i style="background:#ffc861"></i>waist (in)</span></div>`;
+  }
+
+  host.innerHTML=`
+    <div class="chart-card">
+      <div class="chart-head"><div><h3>💪 Strength trend</h3><div class="ch-sub">est. 1RM · proof you're growing</div></div></div>
+      ${strength}
+    </div>
+    <div class="chart-card">
+      <div class="chart-head"><div><h3>📅 Weekly calories</h3><div class="ch-sub">last ${weeks.length||0} weeks vs maintenance</div></div></div>
+      ${calChart}
+    </div>
+    <div class="chart-card">
+      <div class="chart-head"><div><h3>⚖️ Body &amp; waist</h3><div class="ch-sub">recomp truth-teller</div></div></div>
+      ${bodyChart}
+      <div class="body-log">
+        <input id="bwIn" type="number" inputmode="decimal" placeholder="weight (lb)">
+        <input id="waistIn" type="number" inputmode="decimal" placeholder="waist (in)">
+        <button id="bodySave">Log</button>
+      </div>
+    </div>`;
+
+  const sel=document.getElementById('liftSel');
+  if(sel) sel.addEventListener('change', renderCharts);
+  const bs=document.getElementById('bodySave');
+  if(bs) bs.addEventListener('click',()=>{
+    const w=parseFloat(document.getElementById('bwIn').value), wa=parseFloat(document.getElementById('waistIn').value);
+    if(!w && !wa) return;
+    const b=LS.get('gs_body',{}); b[todayKey()]={ w:w||(b[todayKey()]?.w||0), waist:wa||(b[todayKey()]?.waist||0) };
+    LS.set('gs_body',b); renderCharts();
+  });
+}
+renderCharts();
 
 /* render goal + macros card */
 (function renderGoal(){
@@ -1611,6 +1785,25 @@ DAYS.forEach((d,i) => {
     else if(i < todayIdx) cls += ' done';
     return `<span class="${cls}" title="${dow}"></span>`;
   }).join("");
+})();
+
+/* tab navigation */
+(function tabs(){
+  const bar = document.getElementById('tabbar');
+  const panels = [...document.querySelectorAll('.tabp')];
+  bar.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-tab]'); if(!btn) return;
+    const id = 'tab-'+btn.dataset.tab;
+    panels.forEach(p=>p.classList.toggle('active', p.id===id));
+    [...bar.children].forEach(b=>b.classList.toggle('active', b===btn));
+    window.scrollTo({top:0, behavior:'instant'});
+    // hide meal tray when not on Eat tab
+    const tray=document.getElementById('tray');
+    if(btn.dataset.tab!=='eat') tray.classList.remove('show');
+    else if(SELECTED.size) tray.classList.add('show');
+    // (re)draw charts when entering Track so they size correctly
+    if(btn.dataset.tab==='track' && typeof renderCharts==='function') renderCharts();
+  });
 })();
 
 /* register service worker for offline + installable */
