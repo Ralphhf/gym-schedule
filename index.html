@@ -242,6 +242,66 @@
   .fuel-foot{margin:4px 2px 0; padding:13px 15px; background:rgba(74,222,128,.06); border:1px solid rgba(74,222,128,.22); border-radius:13px; font-size:.8rem; line-height:1.55; color:var(--txt);}
   .fuel-foot b{color:var(--accent); font-weight:700;}
 
+  /* ---- meal selection + cart ---- */
+  .opt-card{position:relative;}
+  .opt-card.sel{border-color:var(--accent); background:rgba(74,222,128,.06);}
+  .opt-add{
+    margin-top:10px; width:100%; border:1px solid var(--line2); background:var(--bg);
+    color:var(--txt); font-family:var(--font-mono); font-size:.7rem; font-weight:700;
+    letter-spacing:.08em; text-transform:uppercase; padding:8px; border-radius:9px;
+    cursor:pointer; transition:all .15s ease; display:flex; align-items:center; justify-content:center; gap:7px;
+  }
+  .opt-add:active{transform:scale(.98);}
+  .opt-card.sel .opt-add{background:var(--accent); color:#06210f; border-color:var(--accent);}
+  .opt-add .ic{font-size:.85rem; line-height:1;}
+
+  /* days stepper inside fuel head */
+  .days-pick{display:flex; align-items:center; gap:0; border:1px solid var(--line2); border-radius:9px; overflow:hidden;}
+  .days-pick button{background:var(--bg2); color:var(--txt); border:none; width:30px; height:30px; font-size:1.1rem; font-weight:800; cursor:pointer; line-height:1;}
+  .days-pick button:active{background:var(--card2);}
+  .days-pick .dval{font-family:var(--font-mono); font-size:.78rem; font-weight:700; padding:0 11px; min-width:64px; text-align:center;}
+  .days-pick .dval small{color:var(--muted2); font-weight:500;}
+
+  /* floating cart tray */
+  .tray{
+    position:fixed; left:50%; transform:translateX(-50%) translateY(140%);
+    bottom:calc(16px + env(safe-area-inset-bottom)); width:calc(100% - 32px); max-width:688px;
+    background:linear-gradient(180deg, #16261c, #0f1a13);
+    border:1px solid rgba(74,222,128,.4); border-radius:16px;
+    box-shadow:0 16px 50px -12px rgba(0,0,0,.7), 0 0 0 1px rgba(74,222,128,.15);
+    padding:13px 15px; display:flex; align-items:center; justify-content:space-between; gap:12px;
+    z-index:50; transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .tray.show{transform:translateX(-50%) translateY(0);}
+  .tray .t-info{min-width:0;}
+  .tray .t-count{font-weight:800; font-size:.95rem; letter-spacing:-.01em;}
+  .tray .t-count b{color:var(--accent);}
+  .tray .t-sub{font-family:var(--font-mono); font-size:.62rem; color:var(--muted); letter-spacing:.04em; margin-top:2px;}
+  .tray .t-btn{
+    flex:none; background:var(--accent); color:#06210f; border:none; font-weight:800;
+    font-size:.88rem; padding:11px 16px; border-radius:11px; cursor:pointer; letter-spacing:-.01em;
+    display:flex; align-items:center; gap:7px; transition:transform .12s ease, opacity .2s ease;
+  }
+  .tray .t-btn:active{transform:scale(.97);}
+  .tray .t-btn:disabled{opacity:.6; cursor:wait;}
+  .tray .t-clear{background:none; border:none; color:var(--muted2); font-size:1.1rem; cursor:pointer; padding:4px; flex:none;}
+
+  /* cart result modal */
+  .cart-modal{position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); z-index:60; display:none; align-items:center; justify-content:center; padding:20px;}
+  .cart-modal.show{display:flex; animation:fade .2s ease;}
+  .cart-box{background:var(--card); border:1px solid var(--line2); border-radius:18px; max-width:460px; width:100%; max-height:80vh; overflow-y:auto; padding:20px;}
+  .cart-box h3{margin:0 0 4px; font-size:1.15rem; font-weight:900; letter-spacing:-.02em;}
+  .cart-box .cb-sub{font-family:var(--font-mono); font-size:.66rem; color:var(--muted2); letter-spacing:.05em; text-transform:uppercase; margin-bottom:14px;}
+  .cart-list{list-style:none; margin:0 0 16px; padding:0;}
+  .cart-list li{display:flex; justify-content:space-between; gap:10px; padding:7px 0; border-bottom:1px solid var(--line); font-size:.86rem;}
+  .cart-list li .q{font-family:var(--font-mono); color:var(--accent); font-weight:700; white-space:nowrap;}
+  .cart-pantry{font-size:.74rem; color:var(--muted); font-family:var(--font-mono); line-height:1.5; margin-bottom:16px;}
+  .cart-actions{display:flex; gap:9px;}
+  .cart-actions button{flex:1; padding:12px; border-radius:11px; font-weight:800; font-size:.88rem; cursor:pointer; border:none;}
+  .cart-actions .go{background:var(--accent); color:#06210f;}
+  .cart-actions .close{background:var(--bg2); color:var(--txt); border:1px solid var(--line2);}
+  .cart-err{color:#ff8da3; font-size:.8rem; line-height:1.5; margin-bottom:14px;}
+
   /* section banner (e.g. abs circuit) */
   .section-note{
     margin:22px 0 11px; padding:13px 15px;
@@ -279,10 +339,29 @@
 <div class="grid" id="grid"></div>
 
 <div class="fuel-head">
-  <h2>🍳 Fuel <span style="color:var(--accent)">·</span> Walmart Meal Plan</h2>
-  <span class="h-sub">3 options / meal</span>
+  <h2>🍳 Fuel <span style="color:var(--accent)">·</span> Meal Plan</h2>
+  <div class="days-pick">
+    <button id="dMinus" aria-label="fewer days">−</button>
+    <span class="dval"><span id="dVal">3</span><small> days</small></span>
+    <button id="dPlus" aria-label="more days">+</button>
+  </div>
 </div>
 <div id="meals"></div>
+
+<!-- floating cart tray -->
+<div class="tray" id="tray">
+  <div class="t-info">
+    <div class="t-count"><b id="trayCount">0</b> meals selected</div>
+    <div class="t-sub" id="traySub">for 3 days · tap Build Cart</div>
+  </div>
+  <button class="t-clear" id="trayClear" title="clear">✕</button>
+  <button class="t-btn" id="trayBuild">🛒 Build Cart</button>
+</div>
+
+<!-- cart result modal -->
+<div class="cart-modal" id="cartModal">
+  <div class="cart-box" id="cartBox"></div>
+</div>
 
 <footer>
   <b>HEAVY</b> 4×4–6 · 3min rest &nbsp;·&nbsp; <b>MODERATE</b> 3×8–12 · 60–90s rest<br>
@@ -566,6 +645,82 @@ const MEALS = [
   ]}
 ];
 
+/* Walmart products one SERVING of each option needs (for cart building).
+   Keyed by "Meal|OptionLetter". unit kept simple; Instacart matches by name
+   and the user reviews quantities before ordering. Pantry condiments are
+   listed once (PANTRY) instead of multiplied per serving. */
+const BUY = {
+  "Breakfast|A": [
+    { name:"Great Value Old Fashioned Oats", qty:1.5, unit:"oz" },
+    { name:"Great Value Large White Eggs", qty:3, unit:"each" },
+    { name:"Great Value Plain Nonfat Greek Yogurt", qty:6, unit:"oz" },
+    { name:"Banana", qty:1, unit:"each" }
+  ],
+  "Breakfast|B": [
+    { name:"Great Value Plain Nonfat Greek Yogurt", qty:12, unit:"oz" },
+    { name:"Great Value Old Fashioned Oats", qty:1.5, unit:"oz" },
+    { name:"Great Value Creamy Peanut Butter", qty:2, unit:"tbsp" },
+    { name:"Banana", qty:0.5, unit:"each" }
+  ],
+  "Breakfast|C": [
+    { name:"Great Value Large White Eggs", qty:3, unit:"each" },
+    { name:"Great Value 100% Liquid Egg Whites", qty:6, unit:"oz" },
+    { name:"Great Value 100% Whole Wheat Bread", qty:2, unit:"slice" },
+    { name:"Banana", qty:1, unit:"each" }
+  ],
+  "Lunch|A": [
+    { name:"Great Value Boneless Skinless Chicken Breast", qty:0.5, unit:"lb" },
+    { name:"Great Value Long Grain White Rice", qty:2, unit:"oz" },
+    { name:"Great Value Frozen Mixed Vegetables", qty:1, unit:"cup" }
+  ],
+  "Lunch|B": [
+    { name:"Great Value Chunk Light Tuna in Water", qty:2, unit:"can" },
+    { name:"Great Value 100% Whole Wheat Bread", qty:3, unit:"slice" },
+    { name:"Apple", qty:1, unit:"each" }
+  ],
+  "Lunch|C": [
+    { name:"Jennie-O 93/7 Lean Ground Turkey", qty:0.5, unit:"lb" },
+    { name:"Great Value Long Grain White Rice", qty:2, unit:"oz" },
+    { name:"Great Value Black Beans", qty:0.5, unit:"can" }
+  ],
+  "Dinner|A": [
+    { name:"Great Value Boneless Skinless Chicken Breast", qty:0.5, unit:"lb" },
+    { name:"Great Value Long Grain White Rice", qty:3, unit:"oz" },
+    { name:"Avocado", qty:0.25, unit:"each" },
+    { name:"Great Value Frozen Mixed Vegetables", qty:1, unit:"cup" }
+  ],
+  "Dinner|B": [
+    { name:"Jennie-O 93/7 Lean Ground Turkey", qty:0.5, unit:"lb" },
+    { name:"Great Value Spaghetti Pasta", qty:3, unit:"oz" },
+    { name:"Great Value Marinara Sauce", qty:4, unit:"oz" }
+  ],
+  "Dinner|C": [
+    { name:"Great Value Frozen Tilapia Fillets", qty:0.5, unit:"lb" },
+    { name:"Russet Potato", qty:1, unit:"each" },
+    { name:"Great Value Frozen Mixed Vegetables", qty:1, unit:"cup" }
+  ],
+  "Snack|A": [
+    { name:"Great Value Plain Nonfat Greek Yogurt", qty:10, unit:"oz" },
+    { name:"Great Value Old Fashioned Oats", qty:1.5, unit:"oz" },
+    { name:"Great Value Creamy Peanut Butter", qty:1, unit:"tbsp" },
+    { name:"Banana", qty:0.5, unit:"each" }
+  ],
+  "Snack|B": [
+    { name:"Great Value Plain Nonfat Greek Yogurt", qty:12, unit:"oz" },
+    { name:"Great Value Granola", qty:1.5, unit:"oz" },
+    { name:"Great Value Frozen Mixed Berries", qty:2.5, unit:"oz" }
+  ],
+  "Snack|C": [
+    { name:"Great Value Low Fat Cottage Cheese", qty:10, unit:"oz" },
+    { name:"Great Value Almonds", qty:1, unit:"oz" },
+    { name:"Apple", qty:1, unit:"each" }
+  ]
+};
+// condiments/staples — buy once, not multiplied per serving
+const PANTRY = ["Great Value Olive Oil", "Light Mayonnaise", "Great Value Salsa", "Grated Parmesan Cheese"];
+// round-up rule: countable units get ceil; weights round to 1 decimal
+const COUNT_UNITS = new Set(["each","can","slice"]);
+
 /* ============================================================
    SCHEDULE DATA
    ============================================================ */
@@ -729,8 +884,10 @@ function detailHTML(d){
   const el = document.getElementById('meals');
   if(!el) return;
   el.innerHTML = MEALS.map(m=>{
-    const opts = m.options.map(o=>`
-      <div class="opt-card">
+    const opts = m.options.map(o=>{
+      const key = `${m.meal}|${o.n}`;
+      return `
+      <div class="opt-card" data-key="${key}">
         <div class="opt-head">
           <span class="opt-name"><span class="ona">${o.n}</span>${o.name}</span>
           <span class="opt-kcal">${o.kcal} kcal</span>
@@ -743,7 +900,9 @@ function detailHTML(d){
           <span class="pill c">${o.c}g carbs</span>
           <span class="pill f">${o.f}g fat</span>
         </div>
-      </div>`).join("");
+        <button class="opt-add" data-key="${key}"><span class="ic">+</span><span class="lbl">Add to cart</span></button>
+      </div>`;
+    }).join("");
     return `<div class="meal">
       <div class="meal-bar">
         <span class="mt"><span class="emoji">${m.emoji}</span><span><span class="mtitle">${m.meal}</span><div class="mtarget">${m.target}</div></span></span>
@@ -755,12 +914,123 @@ function detailHTML(d){
     <div class="fuel-foot">
       <b>How to use it:</b> pick <b>one option from each meal</b> any day — they're interchangeable.
       Any combo lands ~<b>185–195g protein · 260–275g carbs · 65–70g fat · ~2,450 kcal</b> (your maintenance).
-      Hit protein first; adjust rice/bread portions ±¼ to fine-tune.
+      Tap <b>+ Add to cart</b> on the options you want, set your days, then <b>Build Cart</b> → opens Instacart with Walmart items ready to order.
     </div>`;
+  // expand/collapse — but ignore clicks on the add button
   el.querySelectorAll('.meal-bar').forEach(bar=>{
     bar.addEventListener('click', ()=> bar.parentElement.classList.toggle('open'));
   });
+  // wire add toggles
+  el.querySelectorAll('.opt-add').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      toggleSelect(btn.dataset.key);
+    });
+  });
 })();
+
+/* ============================================================
+   CART: selection state + quantity engine + Instacart handoff
+   ============================================================ */
+const SELECTED = new Set();
+let MEAL_DAYS = 3;
+
+function optByKey(key){
+  const [meal,n] = key.split("|");
+  const m = MEALS.find(x=>x.meal===meal);
+  return m ? m.options.find(o=>o.n===n) : null;
+}
+function toggleSelect(key){
+  if(SELECTED.has(key)) SELECTED.delete(key); else SELECTED.add(key);
+  document.querySelectorAll(`.opt-card[data-key="${key}"]`).forEach(c=>{
+    const on = SELECTED.has(key);
+    c.classList.toggle('sel', on);
+    const lbl = c.querySelector('.opt-add .lbl');
+    const ic = c.querySelector('.opt-add .ic');
+    if(lbl) lbl.textContent = on ? "Added" : "Add to cart";
+    if(ic) ic.textContent = on ? "✓" : "+";
+  });
+  updateTray();
+}
+function updateTray(){
+  const tray = document.getElementById('tray');
+  const n = SELECTED.size;
+  document.getElementById('trayCount').textContent = n;
+  document.getElementById('traySub').textContent = `for ${MEAL_DAYS} day${MEAL_DAYS>1?'s':''} · tap Build Cart`;
+  tray.classList.toggle('show', n>0);
+}
+// aggregate selected options × days → merged Walmart product list
+function buildList(){
+  const merged = {}; // name -> {qty, unit}
+  SELECTED.forEach(key=>{
+    (BUY[key]||[]).forEach(it=>{
+      const id = it.name+"||"+it.unit;
+      if(!merged[id]) merged[id] = { name:it.name, unit:it.unit, qty:0 };
+      merged[id].qty += it.qty * MEAL_DAYS;
+    });
+  });
+  return Object.values(merged).map(it=>{
+    let q = it.qty;
+    q = COUNT_UNITS.has(it.unit) ? Math.ceil(q) : Math.round(q*10)/10;
+    return { name:it.name, quantity:q, unit:it.unit,
+             display_text:`${it.name} (~${q} ${it.unit}${q!==1&&COUNT_UNITS.has(it.unit)?'s':''})` };
+  });
+}
+
+/* days stepper */
+(function wireDays(){
+  const valEl = document.getElementById('dVal');
+  const set = (d)=>{ MEAL_DAYS = Math.max(1, Math.min(7, d)); valEl.textContent = MEAL_DAYS; updateTray(); };
+  document.getElementById('dMinus').addEventListener('click', ()=>set(MEAL_DAYS-1));
+  document.getElementById('dPlus').addEventListener('click', ()=>set(MEAL_DAYS+1));
+})();
+
+/* tray actions */
+document.getElementById('trayClear').addEventListener('click', ()=>{
+  [...SELECTED].forEach(k=>toggleSelect(k));
+});
+document.getElementById('trayBuild').addEventListener('click', openCartModal);
+
+function openCartModal(){
+  const list = buildList();
+  if(list.length===0) return;
+  const box = document.getElementById('cartBox');
+  const rows = list.map(it=>`<li><span>${it.name}</span><span class="q">${it.quantity} ${it.unit}${it.quantity!==1&&COUNT_UNITS.has(it.unit)?'s':''}</span></li>`).join("");
+  box.innerHTML = `
+    <h3>🛒 Your Walmart cart</h3>
+    <div class="cb-sub">${SELECTED.size} meals × ${MEAL_DAYS} days · ${list.length} items</div>
+    <ul class="cart-list">${rows}</ul>
+    <div class="cart-pantry">+ Pantry staples (buy once): ${PANTRY.join(" · ")}</div>
+    <div id="cartMsg"></div>
+    <div class="cart-actions">
+      <button class="close" id="cartClose">Edit</button>
+      <button class="go" id="cartGo">🛒 Open in Instacart</button>
+    </div>`;
+  document.getElementById('cartModal').classList.add('show');
+  document.getElementById('cartClose').addEventListener('click', closeCartModal);
+  document.getElementById('cartGo').addEventListener('click', ()=>sendToInstacart(list));
+}
+function closeCartModal(){ document.getElementById('cartModal').classList.remove('show'); }
+document.getElementById('cartModal').addEventListener('click', (e)=>{ if(e.target.id==='cartModal') closeCartModal(); });
+
+async function sendToInstacart(list){
+  const go = document.getElementById('cartGo');
+  const msg = document.getElementById('cartMsg');
+  go.disabled = true; go.textContent = "Building…"; msg.innerHTML = "";
+  try{
+    const r = await fetch('/api/cart', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ title:`Gym Meal Plan (${MEAL_DAYS} days)`, items:list })
+    });
+    const data = await r.json();
+    if(!r.ok || !data.url) throw new Error(data.error || 'Could not build cart');
+    window.open(data.url, '_blank', 'noopener');
+    go.disabled=false; go.textContent="🛒 Open in Instacart";
+  }catch(err){
+    msg.innerHTML = `<div class="cart-err">⚠️ ${err.message}<br>If this is the first run, make sure the Instacart API key is set in Vercel.</div>`;
+    go.disabled=false; go.textContent="Retry";
+  }
+}
 
 /* render stats card */
 (function renderStats(){
