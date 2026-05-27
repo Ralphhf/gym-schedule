@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#07070b">
 <title>My Weekly Split</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Split">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -302,6 +308,61 @@
   .cart-actions .close{background:var(--bg2); color:var(--txt); border:1px solid var(--line2);}
   .cart-err{color:#ff8da3; font-size:.8rem; line-height:1.5; margin-bottom:14px;}
 
+  /* ---- daily tracker card ---- */
+  .track{border:1px solid var(--line); border-radius:var(--radius); background:linear-gradient(180deg,var(--card2),var(--card)); padding:16px 16px 17px; margin:0 0 18px; position:relative; overflow:hidden;}
+  .track::before{content:""; position:absolute; left:0; top:0; bottom:0; width:4px; background:linear-gradient(180deg,#4d9fff,#3da5ff);}
+  .track .col-k{font-family:var(--font-mono); font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted2); font-weight:500;}
+  .track h2{font-size:1.15rem; font-weight:900; letter-spacing:-.03em; margin:5px 0 0;}
+  .track .t-date{font-family:var(--font-mono); font-size:.66rem; color:var(--muted); margin-top:2px;}
+  .chk-row{display:flex; gap:9px; margin:15px 0 4px;}
+  .chk{flex:1; border:1px solid var(--line2); background:var(--bg2); border-radius:12px; padding:11px 10px; cursor:pointer; text-align:center; transition:all .15s ease;}
+  .chk:active{transform:scale(.98);}
+  .chk.on{background:rgba(74,222,128,.12); border-color:var(--accent);}
+  .chk .cticon{font-size:1.2rem; line-height:1;}
+  .chk .ctlbl{font-family:var(--font-mono); font-size:.62rem; font-weight:700; letter-spacing:.04em; text-transform:uppercase; margin-top:6px; color:var(--muted);}
+  .chk.on .ctlbl{color:var(--accent);}
+  .chk .ctstreak{font-size:.6rem; color:var(--muted2); margin-top:2px; font-family:var(--font-mono);}
+
+  .sub-h{font-family:var(--font-mono); font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted2); font-weight:500; margin:18px 0 9px;}
+  .meal-chk{display:flex; align-items:center; gap:10px; padding:9px 11px; border:1px solid var(--line); border-radius:10px; background:var(--bg2); margin-bottom:6px; cursor:pointer;}
+  .meal-chk:active{background:var(--card2);}
+  .meal-chk .box{width:18px; height:18px; border-radius:5px; border:1.5px solid var(--line2); flex:none; display:grid; place-items:center; font-size:.7rem; color:#06210f;}
+  .meal-chk.on .box{background:var(--accent); border-color:var(--accent);}
+  .meal-chk .mc-name{font-size:.85rem; font-weight:600; flex:1;}
+  .meal-chk .mc-name small{color:var(--muted2); font-weight:500; font-family:var(--font-mono); font-size:.7rem;}
+  .meal-chk .mc-mac{font-family:var(--font-mono); font-size:.64rem; color:var(--muted2); white-space:nowrap;}
+
+  /* macro progress bars (today consumed vs target) */
+  .mp{margin:6px 0 4px;}
+  .mp-row{display:flex; justify-content:space-between; font-size:.74rem; margin-bottom:4px;}
+  .mp-row .mp-n{font-weight:700;}
+  .mp-row .mp-v{font-family:var(--font-mono); font-variant-numeric:tabular-nums; color:var(--muted);}
+  .mp-bar{height:7px; border-radius:99px; background:var(--bg2); border:1px solid var(--line); overflow:hidden; margin-bottom:9px;}
+  .mp-bar i{display:block; height:100%; border-radius:99px; transition:width .3s ease;}
+  .mp.p i{background:linear-gradient(90deg,#ff5d6c,#ff8da3);} .mp.p .mp-n{color:#ff8da3;}
+  .mp.c i{background:linear-gradient(90deg,#4d9fff,#7ec4ff);} .mp.c .mp-n{color:#5fb6ff;}
+  .mp.f i{background:linear-gradient(90deg,#f5a623,#ffc861);} .mp.f .mp-n{color:#ffc861;}
+  .mp.k i{background:linear-gradient(90deg,#4ade80,#34d399);} .mp.k .mp-n{color:var(--accent);}
+
+  /* weekly calorie budget */
+  .wk-budget{margin-top:18px; padding:14px; background:var(--bg2); border:1px solid var(--line); border-radius:13px;}
+  .wk-top{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px;}
+  .wk-top .wk-t{font-weight:800; font-size:.92rem;}
+  .wk-top .wk-state{font-family:var(--font-mono); font-size:.72rem; font-weight:700;}
+  .wk-state.under{color:var(--accent);} .wk-state.over{color:#ff8da3;}
+  .wk-bar{height:12px; border-radius:99px; background:var(--bg); border:1px solid var(--line); overflow:hidden; position:relative;}
+  .wk-bar i{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#4ade80,#34d399);}
+  .wk-bar i.over{background:linear-gradient(90deg,#ff5d6c,#ff8da3);}
+  .wk-foot{display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:.66rem; color:var(--muted2); margin-top:7px;}
+  .wk-log{display:flex; gap:8px; margin-top:12px; align-items:center;}
+  .wk-log input{flex:1; background:var(--bg); border:1px solid var(--line2); color:var(--txt); border-radius:9px; padding:9px 11px; font-size:.9rem; font-family:var(--font-mono); -webkit-appearance:none;}
+  .wk-log button{background:var(--accent); color:#06210f; border:none; border-radius:9px; padding:9px 15px; font-weight:800; font-size:.84rem; cursor:pointer; white-space:nowrap;}
+  .wk-days{display:flex; gap:4px; margin-top:11px;}
+  .wk-days .wkd{flex:1; text-align:center; font-family:var(--font-mono); font-size:.56rem; color:var(--muted2); padding:6px 0 5px; border-radius:7px; background:var(--bg); border:1px solid var(--line);}
+  .wk-days .wkd b{display:block; color:var(--txt); font-size:.7rem; margin-top:3px;}
+  .wk-days .wkd.logged{border-color:rgba(74,222,128,.35);} .wk-days .wkd.logged b{color:var(--accent);}
+  .wk-days .wkd.today2{box-shadow:0 0 0 1px var(--accent) inset;}
+
   /* section banner (e.g. abs circuit) */
   .section-note{
     margin:22px 0 11px; padding:13px 15px;
@@ -335,6 +396,8 @@
 <div class="stats" id="stats"></div>
 
 <div class="goal" id="goal"></div>
+
+<div class="track" id="track"></div>
 
 <div class="grid" id="grid"></div>
 
@@ -879,6 +942,125 @@ function detailHTML(d){
   return out;
 }
 
+/* ============================================================
+   STORAGE HELPERS + DATE UTILS (localStorage persistence)
+   ============================================================ */
+const LS = {
+  get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+};
+function todayKey(){ return new Date().toISOString().slice(0,10); } // YYYY-MM-DD
+function isoWeek(d=new Date()){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate()+4-day);
+  const ys = new Date(Date.UTC(t.getUTCFullYear(),0,1));
+  const wk = Math.ceil((((t-ys)/86400000)+1)/7);
+  return `${t.getUTCFullYear()}-W${String(wk).padStart(2,'0')}`;
+}
+function fmt(n){ return Math.round(n).toLocaleString(); }
+
+/* ============================================================
+   DAILY TRACKER: creatine/protein check, meal checklist, week budget
+   ============================================================ */
+const WEEK_BUDGET = DAILY_AVG * 7;   // maintenance kcal across the week
+function renderTracker(){
+  const el = document.getElementById('track'); if(!el) return;
+  const tk = todayKey();
+  const daily = LS.get('gs_daily', {});
+  const today = daily[tk] || { creatine:false, protein:false, meals:[] };
+  const wk = isoWeek();
+  const calAll = LS.get('gs_cal', {});
+  const calWeek = calAll[wk] || {};
+
+  // streaks
+  const streak = (field)=>{
+    let s=0; const d=new Date();
+    for(let i=0;i<60;i++){ const k=d.toISOString().slice(0,10); const e=daily[k]; if(e&&e[field]){s++; d.setDate(d.getDate()-1);} else break; }
+    return s;
+  };
+
+  // consumed macros from checked meals
+  let cp=0,cc=0,cf=0,ck=0;
+  today.meals.forEach(key=>{ const o=optByKey(key); if(o){cp+=o.p;cc+=o.c;cf+=o.f;ck+=o.kcal;} });
+  const bar=(cls,name,val,tgt)=>{ const pct=Math.min(100,Math.round(val/tgt*100)); return `<div class="mp ${cls}"><div class="mp-row"><span class="mp-n">${name}</span><span class="mp-v">${fmt(val)} / ${fmt(tgt)}${cls==='k'?'':'g'} · ${pct}%</span></div><div class="mp-bar"><i style="width:${pct}%"></i></div></div>`; };
+
+  // meal checklist rows
+  const mealRows = MEALS.map(m=>m.options.map(o=>{
+    const key=`${m.meal}|${o.n}`; const on=today.meals.includes(key);
+    return `<div class="meal-chk ${on?'on':''}" data-mealkey="${key}"><span class="box">${on?'✓':''}</span><span class="mc-name">${m.emoji} ${m.meal} <small>${o.name}</small></span><span class="mc-mac">${o.p}P·${o.c}C·${o.f}F</span></div>`;
+  }).join("")).join("");
+
+  // weekly budget
+  const wkTotal = Object.values(calWeek).reduce((a,b)=>a+b,0);
+  const loggedDays = Object.keys(calWeek).length;
+  const pct = Math.min(100, Math.round(wkTotal/WEEK_BUDGET*100));
+  const over = wkTotal > WEEK_BUDGET;
+  const remaining = WEEK_BUDGET - wkTotal;
+  const dowShort=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  // map ISO week days
+  const weekDates=[]; { const d=new Date(); const day=(d.getDay()||7); d.setDate(d.getDate()-(day-1)); for(let i=0;i<7;i++){ weekDates.push(d.toISOString().slice(0,10)); d.setDate(d.getDate()+1);} }
+  const dayCells = weekDates.map((dk,i)=>{ const v=calWeek[dk]; const isToday=dk===tk; return `<div class="wkd ${v?'logged':''} ${isToday?'today2':''}">${dowShort[i]}<b>${v?fmt(v):'–'}</b></div>`; }).join("");
+
+  el.innerHTML = `
+    <div class="col-k">Today</div>
+    <h2>📋 Daily Tracker</h2>
+    <div class="t-date">${new Date().toLocaleDateString(undefined,{weekday:'long',month:'short',day:'numeric'})}</div>
+
+    <div class="chk-row">
+      <div class="chk ${today.creatine?'on':''}" data-chk="creatine">
+        <div class="cticon">💊</div><div class="ctlbl">Creatine</div>
+        <div class="ctstreak">${streak('creatine')||0}d streak</div>
+      </div>
+      <div class="chk ${today.protein?'on':''}" data-chk="protein">
+        <div class="cticon">🥩</div><div class="ctlbl">185g Protein</div>
+        <div class="ctstreak">${streak('protein')||0}d streak</div>
+      </div>
+    </div>
+
+    <div class="sub-h">Today's macros (from meals checked below)</div>
+    ${bar('p','Protein',cp,GOAL.protein_g)}
+    ${bar('c','Carbs',cc,GOAL.carbs_g)}
+    ${bar('f','Fat',cf,GOAL.fat_g)}
+    ${bar('k','Calories',ck,GOAL.calories)}
+
+    <div class="sub-h">Meals eaten today</div>
+    ${mealRows}
+
+    <div class="wk-budget">
+      <div class="wk-top">
+        <span class="wk-t">📅 Weekly calorie budget</span>
+        <span class="wk-state ${over?'over':'under'}">${over?'+'+fmt(wkTotal-WEEK_BUDGET)+' over':fmt(remaining)+' left'}</span>
+      </div>
+      <div class="wk-bar"><i class="${over?'over':''}" style="width:${pct}%"></i></div>
+      <div class="wk-foot"><span>${fmt(wkTotal)} eaten</span><span>budget ${fmt(WEEK_BUDGET)} (${loggedDays}/7 logged)</span></div>
+      <div class="wk-days">${dayCells}</div>
+      <div class="wk-log">
+        <input id="calInput" type="number" inputmode="numeric" placeholder="Today's calories…">
+        <button id="calSave">Log today</button>
+      </div>
+    </div>`;
+
+  // wire daily checks
+  el.querySelectorAll('.chk').forEach(c=>c.addEventListener('click',()=>{
+    const f=c.dataset.chk; const dd=LS.get('gs_daily',{}); const t=dd[tk]||{creatine:false,protein:false,meals:[]};
+    t[f]=!t[f]; dd[tk]=t; LS.set('gs_daily',dd); renderTracker();
+  }));
+  // wire meal checklist
+  el.querySelectorAll('.meal-chk').forEach(c=>c.addEventListener('click',()=>{
+    const key=c.dataset.mealkey; const dd=LS.get('gs_daily',{}); const t=dd[tk]||{creatine:false,protein:false,meals:[]};
+    const i=t.meals.indexOf(key); if(i>=0)t.meals.splice(i,1); else t.meals.push(key);
+    dd[tk]=t; LS.set('gs_daily',dd); renderTracker();
+  }));
+  // wire calorie log
+  const calBtn=el.querySelector('#calSave'); const calIn=el.querySelector('#calInput');
+  if(calBtn) calBtn.addEventListener('click',()=>{
+    const v=parseInt(calIn.value,10); if(!v||v<0) return;
+    const ca=LS.get('gs_cal',{}); if(!ca[wk])ca[wk]={}; ca[wk][tk]=v; LS.set('gs_cal',ca); renderTracker();
+  });
+  if(calIn) calIn.addEventListener('keydown',e=>{ if(e.key==='Enter')calBtn.click(); });
+}
+renderTracker();
+
 /* render goal + macros card */
 (function renderGoal(){
   const el = document.getElementById('goal');
@@ -1152,6 +1334,13 @@ DAYS.forEach((d,i) => {
     return `<span class="${cls}" title="${dow}"></span>`;
   }).join("");
 })();
+
+/* register service worker for offline + installable */
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
