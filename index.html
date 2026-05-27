@@ -454,6 +454,11 @@
   .data-btns .clr{background:var(--bg2); color:#ff8da3; border-color:rgba(255,93,108,.3);}
   .data-msg{font-size:.78rem; margin-top:11px; line-height:1.5;}
   .data-msg.ok{color:var(--accent);} .data-msg.err{color:#ff8da3;}
+  .sync-box{background:var(--bg2); border:1px solid var(--line); border-radius:13px; padding:13px; margin-bottom:13px;}
+  .sync-top{display:flex; align-items:center; justify-content:space-between;}
+  .sync-title{font-weight:800; font-size:.92rem;}
+  .sync-state{font-family:var(--font-mono); font-size:.66rem; font-weight:700; color:var(--muted2);}
+  .sync-state.ok{color:var(--accent);} .sync-state.err{color:#ff8da3;} .sync-state.syncing{color:var(--moderate);}
 
   /* ---- charts ---- */
   .chart-card{border:1px solid var(--line); border-radius:var(--radius); background:var(--card); padding:15px 14px 13px; margin-bottom:16px;}
@@ -1106,8 +1111,9 @@ function detailHTML(d){
    ============================================================ */
 const LS = {
   get(k, d){ try{ return JSON.parse(localStorage.getItem(k)) ?? d; }catch(e){ return d; } },
-  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+  set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); if(typeof onDataChanged==='function') onDataChanged(k); }catch(e){} }
 };
+let syncState='idle', syncTimer=null;   // cloud-sync state (used by renderData)
 function todayKey(){ return new Date().toISOString().slice(0,10); } // YYYY-MM-DD
 function isoWeek(d=new Date()){
   const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
@@ -1383,10 +1389,18 @@ function renderData(){
   const card=document.getElementById('dataCard'); if(!card) return;
   const wasOpen=card.classList.contains('open');
   const st=dataStats(); const last=LS.get('gs_lastBackup',null);
+  const connected = !!getPass();
   card.innerHTML=`
     <div class="data-bar"><h2>⚙️ Data &amp; Backup</h2><span class="d-caret">▼</span></div>
     <div class="data-body">
-      <div class="data-note">Your logs live <b>only on this device</b>. Export a backup file regularly (save it to iCloud/Google Drive) so you never lose progress or can move to a new phone.</div>
+      <div class="sync-box">
+        <div class="sync-top"><span class="sync-title">☁️ Cloud sync</span><span class="sync-state ${syncState}" id="syncState">${connected?'…':'not connected'}</span></div>
+        <div class="data-note" style="margin:8px 0 10px">${connected
+          ? 'Connected. Your data auto-syncs to the cloud on every change and pulls in from your other devices on open.'
+          : 'Connect to back up to the cloud automatically and sync across devices. You\'ll enter your passcode once.'}</div>
+        <button class="${connected?'imp':'exp'}" id="btnSync" style="width:100%;padding:11px;border-radius:11px;font-weight:800;font-size:.84rem;cursor:pointer;border:1px solid var(--line2)">${connected?'Disconnect sync':'🔗 Connect cloud sync'}</button>
+      </div>
+      <div class="data-note">Even with sync on, keep occasional <b>file exports</b> as a hard backup.</div>
       <div class="data-stat">
         ${st.lifts} lifts tracked · ${st.sessions} sessions logged<br>
         ${st.calDays} days of calories · ${st.days} daily check-ins<br>
@@ -1404,8 +1418,69 @@ function renderData(){
   card.querySelector('#btnExport').addEventListener('click',e=>{e.stopPropagation();exportData();});
   card.querySelector('#btnImport').addEventListener('click',e=>{e.stopPropagation();document.getElementById('importFile').click();});
   card.querySelector('#btnClear').addEventListener('click',e=>{e.stopPropagation();clearData();});
+  const sb=card.querySelector('#btnSync');
+  if(sb) sb.addEventListener('click',e=>{ e.stopPropagation(); getPass()?disconnectSync():connectSync(); });
+  setSync(syncState);
 }
 document.getElementById('importFile').addEventListener('change',e=>{ if(e.target.files[0]) importData(e.target.files[0]); });
+renderData();
+
+/* ============================================================
+   CLOUD SYNC (Supabase via /api/sync, passcode-gated)
+   localStorage stays the instant working copy; cloud is the
+   durable backstop + cross-device sync. Last-write-wins by rev.
+   ============================================================ */
+function getPass(){ return localStorage.getItem('gs_pass')||''; }
+function localRev(){ return parseInt(localStorage.getItem('gs_rev')||'0',10); }
+function localBlob(){ const d={}; BACKUP_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) d[k]=JSON.parse(v); }); return d; }
+function setSync(s){ syncState=s; const el=document.getElementById('syncState'); if(el){ const m={idle:'not connected',ok:'✓ synced',syncing:'syncing…',err:'⚠️ sync error',off:'off'}; el.textContent=m[s]||s; el.className='sync-state '+s; } }
+/* called by LS.set whenever a backup key changes */
+function onDataChanged(key){
+  if(!BACKUP_KEYS.includes(key)) return;
+  localStorage.setItem('gs_rev', String(Date.now()));   // direct write, no recursion
+  if(!getPass()) return;
+  clearTimeout(syncTimer); syncTimer=setTimeout(pushCloud, 1500);  // debounce
+}
+async function pushCloud(){
+  const pass=getPass(); if(!pass) return;
+  setSync('syncing');
+  try{
+    const r=await fetch('/api/sync',{ method:'POST', headers:{'Content-Type':'application/json','x-pass':pass},
+      body: JSON.stringify({ rev:localRev(), data:localBlob() }) });
+    setSync(r.ok?'ok':'err');
+  }catch(e){ setSync('err'); }
+}
+async function pullCloud(){
+  const pass=getPass(); if(!pass){ setSync('idle'); return; }
+  setSync('syncing');
+  try{
+    const r=await fetch('/api/sync',{ headers:{'x-pass':pass} });
+    if(r.status===401){ setSync('err'); alert('Cloud sync: wrong passcode.'); return; }
+    if(!r.ok){ setSync('err'); return; }
+    const j=await r.json();
+    const cloudRev=j.rev||0, cloudData=j.data||{};
+    if(cloudRev > localRev() && Object.keys(cloudData).length){
+      // cloud is newer (another device saved) -> adopt and reload
+      Object.keys(cloudData).forEach(k=>{ if(BACKUP_KEYS.includes(k)) localStorage.setItem(k, JSON.stringify(cloudData[k])); });
+      localStorage.setItem('gs_rev', String(cloudRev));
+      setSync('ok'); location.reload();
+    }else if(localRev() > cloudRev){
+      await pushCloud();      // local is newer -> push it up
+    }else{
+      setSync('ok');
+    }
+  }catch(e){ setSync('err'); }
+}
+function connectSync(){
+  const code=prompt('Enter your sync passcode (the SYNC_PASSCODE you set in Vercel):');
+  if(code==null) return;
+  localStorage.setItem('gs_pass', code.trim());
+  pullCloud().then(()=>{ if(syncState!=='err'){ pushCloud(); } renderData(); });
+}
+function disconnectSync(){ localStorage.removeItem('gs_pass'); setSync('idle'); renderData(); }
+/* pull on startup if connected */
+if(getPass()) pullCloud();
+
 renderData();
 
 /* ============================================================
