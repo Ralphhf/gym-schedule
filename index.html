@@ -1334,6 +1334,200 @@ renderPR();
 /* ============================================================
    DATA BACKUP — export / import / clear (localStorage JSON)
    ============================================================ */
+/* ============================================================
+   AI COACH — chat + natural-language logging (talks to /api/chat)
+   Injected via JS so it's reachable from every tab.
+   Writes to the SAME structures the rest of the app uses:
+     gs_logs  = { "<exercise>": [ {date, sets:[{w,r}]} ] }
+     gs_cal   = { "<weekKey>": { "<dayKey>": <kcal number> } }
+     gs_daily = { "<dayKey>": {creatine,protein,meals:[]} }
+     gs_body  = { "<dayKey>": {w,waist} }
+   Auto-sync is free: LS.set() fires onDataChanged -> pushCloud.
+   ============================================================ */
+const COACH_HIST='gs_coach';
+let coachMsgs=LS.get(COACH_HIST,[]);   // [{role,content}] text-only
+let coachBusy=false;
+
+function coachRefresh(){
+  ['renderPR','renderTracker','renderCharts','renderData'].forEach(fn=>{
+    try{ if(typeof window[fn]==='function') window[fn](); }catch(e){}
+  });
+}
+function coachContext(){
+  const tk=todayKey(), wk=isoWeek();   // isoWeek() is the app's global — same bucket the tracker uses
+  const logs=LS.get('gs_logs',{}), cal=LS.get('gs_cal',{}), daily=LS.get('gs_daily',{});
+  const parts=[];
+  for(const ex in logs){
+    const sess=(logs[ex]||[]).find(s=>s.date===tk);
+    if(sess && sess.sets && sess.sets.length) parts.push(`${ex} ${sess.sets.map(x=>`${x.w}×${x.r}`).join(', ')}`);
+  }
+  const kcalToday=Number((cal[wk]||{})[tk])||0;
+  const dd=daily[tk]||{};
+  const G=(typeof GOAL!=='undefined')?GOAL:{};
+  return {
+    profile: typeof PROFILE!=='undefined'?PROFILE:{},
+    goal: G,
+    macros: typeof MACROS!=='undefined'?MACROS:G,
+    exercises: typeof VIDEOS!=='undefined'?Object.keys(VIDEOS):[],
+    today:{ date:tk, kcalToday, kcalLeft:Math.max(0,(G.calories||0)-kcalToday),
+            creatine:!!dd.creatine, protein:!!dd.protein, setsSummary:parts.join(' · ') }
+  };
+}
+
+/* apply one tool call to localStorage; return a human confirmation string */
+function coachApply(a){
+  const tk=todayKey(), wk=isoWeek();   // isoWeek() is the app's global — same bucket the tracker uses
+  const i=a.input||{};
+  const G=(typeof GOAL!=='undefined')?GOAL:{};
+  if(a.name==='log_set'){
+    const ex=(i.exercise||'Exercise').trim();
+    const all=LS.get('gs_logs',{}); if(!all[ex])all[ex]=[];
+    // PR check against best e1RM BEFORE adding
+    let bestBefore=0;
+    (typeof bestPR==='function') ? (function(){ const b=bestPR(ex); if(b)bestBefore=b.e; })() :
+      all[ex].forEach(s=>(s.sets||[]).forEach(x=>{ if(x.w>0&&x.r>0){ const e=x.w*(1+x.r/30); if(e>bestBefore)bestBefore=e; }}));
+    let sess=all[ex].find(s=>s.date===tk);
+    if(!sess){ sess={date:tk, sets:[]}; all[ex].push(sess); }
+    const n=Math.max(1, i.sets||1);
+    for(let k=0;k<n;k++) sess.sets.push({ w:Number(i.weight)||0, r:Number(i.reps)||0 });
+    LS.set('gs_logs',all);
+    const e1=(Number(i.weight)||0)*(1+(Number(i.reps)||0)/30);
+    const pr = e1>bestBefore && bestBefore>0;
+    return `✅ ${ex} — ${i.weight} lb × ${i.reps}${n>1?` × ${n} sets`:''}${pr?'  🏆 New PR!':''}`;
+  }
+  if(a.name==='add_calories'){
+    const cal=LS.get('gs_cal',{}); if(!cal[wk])cal[wk]={};
+    cal[wk][tk]=(Number(cal[wk][tk])||0)+(Number(i.kcal)||0); LS.set('gs_cal',cal);
+    const left=Math.max(0,(G.calories||0)-cal[wk][tk]);
+    const mac=[i.protein_g?`${i.protein_g}P`:'',i.carbs_g?`${i.carbs_g}C`:'',i.fat_g?`${i.fat_g}F`:''].filter(Boolean).join('·');
+    return `✅ +${i.kcal} kcal — ${i.food||'food'}${mac?` (${mac})`:''}  ·  ${left} kcal left today`;
+  }
+  if(a.name==='set_daily_check'){
+    const daily=LS.get('gs_daily',{}); const t=daily[tk]||{creatine:false,protein:false,meals:[]};
+    t[i.item]=!!i.done; daily[tk]=t; LS.set('gs_daily',daily);
+    return `✅ ${i.item==='creatine'?'Creatine':'Protein goal'} ${i.done?'checked':'unchecked'} for today`;
+  }
+  if(a.name==='set_bodyweight'){
+    const body=LS.get('gs_body',{}); const t=body[tk]||{};
+    if(i.weight_lb)t.w=Number(i.weight_lb); if(i.waist_in)t.waist=Number(i.waist_in); body[tk]=t; LS.set('gs_body',body);
+    return `✅ Logged${i.weight_lb?` ${i.weight_lb} lb`:''}${i.waist_in?` · waist ${i.waist_in}"`:''}`;
+  }
+  return null;
+}
+
+function coachBubble(role,text){
+  const wrap=document.getElementById('coachMsgs'); if(!wrap)return;
+  const d=document.createElement('div'); d.className='cm '+role;
+  d.innerHTML=String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/\n/g,'<br>');
+  wrap.appendChild(d); wrap.scrollTop=wrap.scrollHeight;
+}
+function coachRenderHistory(){
+  const wrap=document.getElementById('coachMsgs'); if(!wrap)return; wrap.innerHTML='';
+  if(!coachMsgs.length){
+    coachBubble('sys',"👋 Tell me what you did and I'll log it.\n\nTry: \"benched 185 for 5, 3 sets\" · \"ate 2 eggs and oatmeal\" · \"took my creatine\" — or ask me anything about your plan.");
+    return;
+  }
+  coachMsgs.forEach(m=>coachBubble(m.role==='user'?'user':'bot', m.content));
+}
+
+async function coachSend(){
+  if(coachBusy)return;
+  const inp=document.getElementById('coachInput'); const text=(inp.value||'').trim(); if(!text)return;
+  if(!getPass()){
+    const p=prompt('Enter your passcode to enable the coach (same one as Cloud Sync):');
+    if(!p)return; localStorage.setItem('gs_pass',p.trim());
+  }
+  inp.value=''; inp.style.height='auto';
+  coachMsgs.push({role:'user',content:text}); coachBubble('user',text);
+  LS.set(COACH_HIST,coachMsgs.slice(-20));
+  coachBusy=true;
+  const msgs=document.getElementById('coachMsgs');
+  const typing=document.createElement('div'); typing.className='cm bot typing'; typing.textContent='…';
+  msgs.appendChild(typing); msgs.scrollTop=1e9;
+  try{
+    const r=await fetch('/api/chat',{method:'POST',
+      headers:{'Content-Type':'application/json','x-pass':getPass()},
+      body:JSON.stringify({ messages:coachMsgs.slice(-12), context:coachContext() })});
+    const data=await r.json().catch(()=>({}));
+    typing.remove();
+    if(!r.ok){ coachBubble('sys','⚠️ '+(data.error||('Error '+r.status))); coachBusy=false; return; }
+    const confirms=[];
+    (data.actions||[]).forEach(a=>{ const c=coachApply(a); if(c)confirms.push(c); });
+    if(confirms.length){ coachRefresh(); confirms.forEach(c=>coachBubble('sys',c)); }
+    const reply=(data.reply||'').trim() || (confirms.length?'':'Got it.');
+    if(reply){ coachBubble('bot',reply); coachMsgs.push({role:'assistant',content:reply}); }
+    else if(confirms.length){ coachMsgs.push({role:'assistant',content:confirms.join('\n')}); }
+    LS.set(COACH_HIST,coachMsgs.slice(-20));
+  }catch(e){ typing.remove(); coachBubble('sys','⚠️ '+(e.message||e)); }
+  coachBusy=false;
+}
+function coachOpen(){ const p=document.getElementById('coachPanel'); if(p){ p.classList.add('show'); document.getElementById('coachInput').focus(); } }
+function coachClose(){ const p=document.getElementById('coachPanel'); if(p) p.classList.remove('show'); }
+
+function initCoach(){
+  if(document.getElementById('coachFab')) return;
+  const css=`
+  .coach-fab{position:fixed;right:16px;bottom:calc(96px + env(safe-area-inset-bottom));
+    width:58px;height:58px;border-radius:50%;border:none;cursor:pointer;z-index:55;
+    background:linear-gradient(160deg,#4ade80,#22c55e);color:#06210f;font-size:1.55rem;
+    box-shadow:0 10px 30px -6px rgba(34,197,94,.6),0 0 0 1px rgba(74,222,128,.3);
+    display:flex;align-items:center;justify-content:center;transition:transform .15s ease;}
+  .coach-fab:active{transform:scale(.92);}
+  .coach-panel{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;background:var(--bg,#07070b);}
+  .coach-panel.show{display:flex;}
+  .coach-hd{display:flex;align-items:center;gap:11px;padding:calc(14px + env(safe-area-inset-top)) 16px 13px;
+    border-bottom:1px solid var(--line,#23232f);background:linear-gradient(180deg,var(--card2,#16161f),var(--card,#12121a));}
+  .coach-hd .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(160deg,#4ade80,#22c55e);
+    display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex:none;}
+  .coach-hd .ti{font-weight:800;font-size:1.02rem;letter-spacing:-.02em;}
+  .coach-hd .ti small{display:block;font-weight:500;font-size:.66rem;color:var(--muted,#9a9aac);letter-spacing:0;margin-top:1px;}
+  .coach-hd .x{margin-left:auto;background:none;border:none;color:var(--muted2,#6b6b7b);font-size:1.5rem;cursor:pointer;padding:4px 8px;}
+  #coachMsgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;}
+  .cm{max-width:84%;padding:10px 13px;border-radius:15px;font-size:.9rem;line-height:1.45;word-wrap:break-word;}
+  .cm.user{align-self:flex-end;background:linear-gradient(160deg,#4ade80,#22c55e);color:#06210f;font-weight:600;border-bottom-right-radius:5px;}
+  .cm.bot{align-self:flex-start;background:var(--card,#12121a);border:1px solid var(--line,#23232f);color:var(--txt,#e9e9f0);border-bottom-left-radius:5px;}
+  .cm.sys{align-self:center;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.3);color:var(--txt,#e9e9f0);font-size:.82rem;text-align:center;max-width:92%;border-radius:11px;}
+  .cm.typing{opacity:.6;letter-spacing:3px;}
+  .coach-in{display:flex;gap:9px;align-items:flex-end;padding:12px 14px calc(14px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line,#23232f);background:var(--card,#12121a);}
+  .coach-in textarea{flex:1;resize:none;max-height:120px;background:var(--bg2,#0e0e15);color:var(--txt,#e9e9f0);
+    border:1px solid var(--line2,#2c2c3a);border-radius:13px;padding:11px 13px;font:inherit;font-size:.92rem;line-height:1.4;outline:none;}
+  .coach-in textarea:focus{border-color:var(--accent,#4ade80);}
+  .coach-in .send{flex:none;width:44px;height:44px;border-radius:12px;border:none;cursor:pointer;
+    background:linear-gradient(160deg,#4ade80,#22c55e);color:#06210f;font-size:1.2rem;font-weight:800;}
+  .coach-in .send:active{transform:scale(.94);}`;
+  const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
+
+  const fab=document.createElement('button'); fab.className='coach-fab'; fab.id='coachFab';
+  fab.title='Ask your coach'; fab.textContent='🤖'; document.body.appendChild(fab);
+
+  const panel=document.createElement('div'); panel.className='coach-panel'; panel.id='coachPanel';
+  panel.innerHTML=`
+    <div class="coach-hd">
+      <div class="av">🤖</div>
+      <div class="ti">Coach <small>logs your lifts &amp; meals · knows your plan</small></div>
+      <button class="x" id="coachX">✕</button>
+    </div>
+    <div id="coachMsgs"></div>
+    <div class="coach-in">
+      <textarea id="coachInput" rows="1" placeholder="e.g. benched 185 for 5, 3 sets…"></textarea>
+      <button class="send" id="coachSend">➤</button>
+    </div>`;
+  document.body.appendChild(panel);
+
+  fab.addEventListener('click',coachOpen);
+  document.getElementById('coachX').addEventListener('click',coachClose);
+  document.getElementById('coachSend').addEventListener('click',coachSend);
+  const inp=document.getElementById('coachInput');
+  inp.addEventListener('input',()=>{ inp.style.height='auto'; inp.style.height=Math.min(120,inp.scrollHeight)+'px'; });
+  inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); coachSend(); }});
+  coachRenderHistory();
+}
+initCoach();
+
+/* ============================================================
+   DATA BACKUP — export / import / clear (localStorage JSON)
+   ============================================================ */
 const BACKUP_KEYS = ['gs_logs','gs_daily','gs_cal','gs_body'];
 function gatherData(){
   const data = {};
