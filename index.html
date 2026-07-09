@@ -1257,6 +1257,8 @@ function renderTracker(){
   // consumed macros from checked meals
   let cp=0,cc=0,cf=0,ck=0;
   today.meals.forEach(key=>{ const o=optByKey(key); if(o){cp+=o.p;cc+=o.c;cf+=o.f;ck+=o.kcal;} });
+  const mToday=(LS.get('gs_macros',{})[tk])||{p:0,c:0,f:0,k:0};   // food logged via the coach
+  cp+=mToday.p||0; cc+=mToday.c||0; cf+=mToday.f||0; ck+=mToday.k||0;
   const bar=(cls,name,val,tgt)=>{ const pct=Math.min(100,Math.round(val/tgt*100)); return `<div class="mp ${cls}"><div class="mp-row"><span class="mp-n">${name}</span><span class="mp-v">${fmt(val)} / ${fmt(tgt)}${cls==='k'?'':'g'} · ${pct}%</span></div><div class="mp-bar"><i style="width:${pct}%"></i></div></div>`; };
 
   // meal checklist rows
@@ -1292,7 +1294,7 @@ function renderTracker(){
       </div>
     </div>
 
-    <div class="sub-h">Today's macros (from meals checked below)</div>
+    <div class="sub-h">Today's macros (coach logs + meals checked below)</div>
     ${bar('p','Protein',cp,GOAL.protein_g)}
     ${bar('c','Carbs',cc,GOAL.carbs_g)}
     ${bar('f','Fat',cf,GOAL.fat_g)}
@@ -1484,12 +1486,18 @@ function coachContext(){
   const kcalToday=Number((cal[wk]||{})[tk])||0;
   const dd=daily[tk]||{};
   const G=(typeof GOAL!=='undefined')?GOAL:{};
+  // macros consumed today = coach-logged food + any meals checked on the Track tab
+  const mm=(LS.get('gs_macros',{})[tk])||{p:0,c:0,f:0,k:0};
+  let mp=mm.p||0, mc=mm.c||0, mf=mm.f||0;
+  (dd.meals||[]).forEach(key=>{ const o=(typeof optByKey==='function')?optByKey(key):null; if(o){ mp+=o.p; mc+=o.c; mf+=o.f; } });
   return {
     profile: typeof PROFILE!=='undefined'?PROFILE:{},
     goal: G,
-    macros: typeof MACROS!=='undefined'?MACROS:G,
+    macros: { protein_g:G.protein_g, carbs_g:G.carbs_g, fat_g:G.fat_g },
     exercises: typeof VIDEOS!=='undefined'?Object.keys(VIDEOS):[],
     today:{ date:tk, kcalToday, kcalLeft:Math.max(0,(G.calories||0)-kcalToday),
+            proteinToday:Math.round(mp), carbsToday:Math.round(mc), fatToday:Math.round(mf),
+            proteinLeft:Math.max(0,Math.round((G.protein_g||0)-mp)), carbsLeft:Math.max(0,Math.round((G.carbs_g||0)-mc)), fatLeft:Math.max(0,Math.round((G.fat_g||0)-mf)),
             creatine:!!dd.creatine, protein:!!dd.protein, setsSummary:parts.join(' · ') }
   };
 }
@@ -1518,6 +1526,10 @@ function coachApply(a){
   if(a.name==='add_calories'){
     const cal=LS.get('gs_cal',{}); if(!cal[wk])cal[wk]={};
     cal[wk][tk]=(Number(cal[wk][tk])||0)+(Number(i.kcal)||0); LS.set('gs_cal',cal);
+    // also log protein / carbs / fat so the Track-tab macro bars move too
+    const mm=LS.get('gs_macros',{}); const mt=mm[tk]||{p:0,c:0,f:0,k:0};
+    mt.p+=Number(i.protein_g)||0; mt.c+=Number(i.carbs_g)||0; mt.f+=Number(i.fat_g)||0; mt.k+=Number(i.kcal)||0;
+    mm[tk]=mt; LS.set('gs_macros',mm);
     const left=Math.max(0,(G.calories||0)-cal[wk][tk]);
     const mac=[i.protein_g?`${i.protein_g}P`:'',i.carbs_g?`${i.carbs_g}C`:'',i.fat_g?`${i.fat_g}F`:''].filter(Boolean).join('·');
     return `✅ +${i.kcal} kcal — ${i.food||'food'}${mac?` (${mac})`:''}  ·  ${left} kcal left today`;
@@ -1727,7 +1739,7 @@ initCoach();
 /* ============================================================
    DATA BACKUP — export / import / clear (localStorage JSON)
    ============================================================ */
-const BACKUP_KEYS = ['gs_logs','gs_daily','gs_cal','gs_body'];
+const BACKUP_KEYS = ['gs_logs','gs_daily','gs_cal','gs_body','gs_macros'];
 function gatherData(){
   const data = {};
   BACKUP_KEYS.forEach(k=>{ const v=localStorage.getItem(k); if(v!=null) data[k]=JSON.parse(v); });
