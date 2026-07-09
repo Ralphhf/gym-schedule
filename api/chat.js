@@ -55,6 +55,25 @@ const TOOLS = [
     },
   },
   {
+    name: "remove_food",
+    description:
+      "Subtract food from today when the user says they did NOT eat something, ate less than " +
+      "logged, or wants to undo/correct/remove a food entry. Estimate the kcal and " +
+      "protein/carbs/fat to remove from the food described, the same way you estimate when adding. " +
+      "If they want to wipe ALL of today's food (e.g. 'clear my food', 'start today over'), set clear:true.",
+    input_schema: {
+      type: "object",
+      properties: {
+        kcal: { type: "integer", description: "Calories to remove (your best estimate)" },
+        food: { type: "string", description: "Short description of the food being removed" },
+        protein_g: { type: "integer", description: "Protein grams to remove (estimate)" },
+        carbs_g: { type: "integer", description: "Carb grams to remove (estimate)" },
+        fat_g: { type: "integer", description: "Fat grams to remove (estimate)" },
+        clear: { type: "boolean", description: "true = reset ALL of today's food/macros to zero" },
+      },
+    },
+  },
+  {
     name: "set_daily_check",
     description:
       "Mark a daily habit done (or undone) for today. Use for creatine and protein-goal checkboxes.",
@@ -100,6 +119,8 @@ function buildSystem(ctx) {
     "- Multiple sets at the same weight/reps → ONE log_set call with the `sets` count.",
     "- Different weights/reps → one log_set call each.",
     "- Food without a calorie number → estimate kcal AND protein/carbs/fat from typical values.",
+    "- 'I didn't eat that' / 'remove the ...' / 'undo' / 'clear my food' → call remove_food",
+    "  (estimate the same macros you would when adding; use clear:true to wipe the whole day).",
     "- Match exercises to a known name when the user is clearly referring to one.",
     "- You may both log AND say something (e.g. log a PR-worthy set and hype them up).",
     "- If a message has nothing to log and isn't a question, reply briefly and warmly.",

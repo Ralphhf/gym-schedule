@@ -1534,6 +1534,25 @@ function coachApply(a){
     const mac=[i.protein_g?`${i.protein_g}P`:'',i.carbs_g?`${i.carbs_g}C`:'',i.fat_g?`${i.fat_g}F`:''].filter(Boolean).join('·');
     return `✅ +${i.kcal} kcal — ${i.food||'food'}${mac?` (${mac})`:''}  ·  ${left} kcal left today`;
   }
+  if(a.name==='remove_food'){
+    const cal=LS.get('gs_cal',{}); if(!cal[wk])cal[wk]={};
+    const mm=LS.get('gs_macros',{}); const mt=mm[tk]||{p:0,c:0,f:0,k:0};
+    if(i.clear){
+      cal[wk][tk]=0; LS.set('gs_cal',cal);
+      mm[tk]={p:0,c:0,f:0,k:0}; LS.set('gs_macros',mm);
+      return `✅ Cleared today's food — back to 0 kcal / 0P · 0C · 0F`;
+    }
+    const dk=Number(i.kcal)||0;
+    cal[wk][tk]=Math.max(0,(Number(cal[wk][tk])||0)-dk); LS.set('gs_cal',cal);
+    mt.p=Math.max(0,(mt.p||0)-(Number(i.protein_g)||0));
+    mt.c=Math.max(0,(mt.c||0)-(Number(i.carbs_g)||0));
+    mt.f=Math.max(0,(mt.f||0)-(Number(i.fat_g)||0));
+    mt.k=Math.max(0,(mt.k||0)-dk);
+    mm[tk]=mt; LS.set('gs_macros',mm);
+    const left=Math.max(0,(G.calories||0)-cal[wk][tk]);
+    const mac=[i.protein_g?`${i.protein_g}P`:'',i.carbs_g?`${i.carbs_g}C`:'',i.fat_g?`${i.fat_g}F`:''].filter(Boolean).join('·');
+    return `✅ −${dk} kcal — removed ${i.food||'food'}${mac?` (${mac})`:''}  ·  ${left} kcal left today`;
+  }
   if(a.name==='set_daily_check'){
     const daily=LS.get('gs_daily',{}); const t=daily[tk]||{creatine:false,protein:false,meals:[]};
     t[i.item]=!!i.done; daily[tk]=t; LS.set('gs_daily',daily);
