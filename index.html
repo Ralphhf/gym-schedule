@@ -496,6 +496,65 @@
   footer{text-align:center; color:var(--muted2); font-size:.72rem; margin-top:32px; line-height:1.6; font-family:var(--font-mono); letter-spacing:.02em;}
   footer b{color:var(--muted); font-weight:700;}
   footer .made{margin-top:10px; opacity:.6; font-size:.66rem;}
+
+  /* ---- edit-profile button (More tab) ---- */
+  .edit-profile-btn{width:100%; margin-top:16px; padding:14px; background:var(--card2); color:var(--txt); border:1px solid var(--line2); border-radius:14px; font-family:var(--font-display); font-size:.9rem; font-weight:700; cursor:pointer; transition:border-color .2s, background .2s;}
+  .edit-profile-btn:active{background:var(--card);}
+  .edit-profile-btn b{color:var(--accent);}
+
+  /* ---- onboarding quiz ---- */
+  .quiz-overlay{position:fixed; inset:0; z-index:200; background:rgba(4,4,8,.82); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); display:none; align-items:flex-start; justify-content:center; overflow-y:auto; padding:max(20px,env(safe-area-inset-top)) 16px 40px;}
+  .quiz-overlay.show{display:flex;}
+  .quiz-box{width:100%; max-width:480px; margin:auto; background:linear-gradient(180deg,var(--card),var(--bg2)); border:1px solid var(--line2); border-radius:22px; box-shadow:0 30px 80px -20px rgba(0,0,0,.8); padding:26px 22px 22px; position:relative;}
+  .quiz-prog{display:flex; gap:5px; margin-bottom:22px;}
+  .quiz-prog .seg{flex:1; height:4px; border-radius:3px; background:var(--line2); transition:background .3s;}
+  .quiz-prog .seg.on{background:linear-gradient(90deg,var(--accent),var(--accent2));}
+  .quiz-step{display:none; animation:quizIn .3s ease;}
+  .quiz-step.on{display:block;}
+  @keyframes quizIn{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+  .quiz-k{font-family:var(--font-mono); font-size:.62rem; letter-spacing:.16em; text-transform:uppercase; color:var(--accent); font-weight:600;}
+  .quiz-q{font-size:1.5rem; font-weight:900; letter-spacing:-.03em; margin-top:8px; line-height:1.12;}
+  .quiz-hint{font-size:.82rem; color:var(--muted); margin-top:8px; line-height:1.5;}
+  .quiz-opts{display:grid; gap:10px; margin-top:20px;}
+  .quiz-opts.two{grid-template-columns:1fr 1fr;}
+  .quiz-opt{text-align:left; background:var(--card2); border:1.5px solid var(--line2); border-radius:14px; padding:15px 16px; cursor:pointer; color:var(--txt); font-family:var(--font-display); transition:border-color .15s, background .15s, transform .05s;}
+  .quiz-opt:active{transform:scale(.985);}
+  .quiz-opt.sel{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 12%, var(--card2));}
+  .quiz-opt .ot{font-size:1rem; font-weight:800; letter-spacing:-.01em;}
+  .quiz-opt .od{font-size:.76rem; color:var(--muted); margin-top:3px; line-height:1.4;}
+  .quiz-opt .oe{font-size:1.25rem; margin-right:2px;}
+  .quiz-fields{display:grid; gap:14px; margin-top:20px;}
+  .quiz-field label{display:block; font-family:var(--font-mono); font-size:.62rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted2); margin-bottom:7px; font-weight:500;}
+  .quiz-field .row{display:flex; gap:8px;}
+  .quiz-input{width:100%; background:var(--bg); border:1.5px solid var(--line2); border-radius:12px; padding:13px 14px; color:var(--txt); font-family:var(--font-display); font-size:1.05rem; font-weight:700; text-align:center; -moz-appearance:textfield;}
+  .quiz-input::-webkit-outer-spin-button,.quiz-input::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+  .quiz-input:focus{outline:none; border-color:var(--accent);}
+  .unit-toggle{display:flex; border:1.5px solid var(--line2); border-radius:12px; overflow:hidden; flex:none;}
+  .unit-toggle button{background:var(--bg); border:none; color:var(--muted); font-family:var(--font-mono); font-size:.72rem; font-weight:700; padding:0 13px; cursor:pointer;}
+  .unit-toggle button.on{background:var(--accent); color:#06210f;}
+  .quiz-nav{display:flex; gap:10px; margin-top:24px;}
+  .quiz-btn{flex:1; padding:15px; border-radius:14px; border:none; font-family:var(--font-display); font-weight:800; font-size:1rem; cursor:pointer; transition:opacity .2s, transform .05s;}
+  .quiz-btn:active{transform:scale(.98);}
+  .quiz-btn.next{background:linear-gradient(180deg,var(--accent),var(--accent2)); color:#06210f;}
+  .quiz-btn.next:disabled{opacity:.4; cursor:not-allowed;}
+  .quiz-btn.back{flex:0 0 auto; background:var(--card2); color:var(--muted); border:1px solid var(--line2); padding:15px 20px;}
+  .quiz-x{position:absolute; top:16px; right:16px; width:32px; height:32px; border-radius:9px; background:var(--card2); border:1px solid var(--line2); color:var(--muted); font-size:1rem; cursor:pointer; line-height:1; display:none;}
+  .quiz-x.show{display:block;}
+  /* summary step */
+  .quiz-summary{margin-top:20px; display:grid; gap:12px;}
+  .qs-card{background:var(--card2); border:1px solid var(--line2); border-radius:14px; padding:15px 16px;}
+  .qs-card.hero{border-left:4px solid var(--accent);}
+  .qs-card .qk{font-family:var(--font-mono); font-size:.6rem; letter-spacing:.14em; text-transform:uppercase; color:var(--muted2);}
+  .qs-card .qv{font-size:1.15rem; font-weight:900; letter-spacing:-.02em; margin-top:4px;}
+  .qs-card .qsub{font-size:.78rem; color:var(--muted); margin-top:5px; line-height:1.5;}
+  .qs-macros{display:flex; gap:8px; margin-top:12px;}
+  .qs-macros .m{flex:1; text-align:center; background:var(--bg); border:1px solid var(--line); border-radius:11px; padding:10px 4px;}
+  .qs-macros .m .mv{font-size:1.15rem; font-weight:900; letter-spacing:-.02em;}
+  .qs-macros .m .ml{font-family:var(--font-mono); font-size:.56rem; letter-spacing:.08em; text-transform:uppercase; color:var(--muted2); margin-top:2px;}
+  .qs-days{display:flex; gap:4px; margin-top:12px;}
+  .qs-days .qd{flex:1; text-align:center; font-family:var(--font-mono); font-size:.55rem; color:var(--muted2); padding:7px 0 6px; border-radius:8px; background:var(--bg); border:1px solid var(--line);}
+  .qs-days .qd b{display:block; color:var(--txt); font-size:.62rem; margin-top:3px; font-family:var(--font-display);}
+  .qs-days .qd.rest{opacity:.5;}
 </style>
 </head>
 <body>
@@ -541,6 +600,7 @@
   <section class="tabp" id="tab-more">
     <div class="tab-title">More<span class="ts">Stats, calories burned &amp; backup</span></div>
     <div class="stats" id="stats"></div>
+    <button class="edit-profile-btn" id="editProfileBtn"><b>✎ Retake quiz</b> · edit your profile &amp; goal</button>
     <div class="data-card" id="dataCard"></div>
     <footer>
       <b>HEAVY</b> 4×4–6 · 3min rest &nbsp;·&nbsp; <b>MODERATE</b> 3×8–12 · 60–90s rest<br>
@@ -548,6 +608,19 @@
     </footer>
   </section>
 </main>
+
+<!-- onboarding quiz -->
+<div class="quiz-overlay" id="quizOverlay" role="dialog" aria-modal="true" aria-label="Set up your plan">
+  <div class="quiz-box">
+    <button class="quiz-x" id="quizX" aria-label="close">✕</button>
+    <div class="quiz-prog" id="quizProg"></div>
+    <div id="quizBody"></div>
+    <div class="quiz-nav">
+      <button class="quiz-btn back" id="quizBack">Back</button>
+      <button class="quiz-btn next" id="quizNext">Next</button>
+    </div>
+  </div>
+</div>
 
 <!-- bottom tab bar -->
 <nav class="tabbar" id="tabbar">
@@ -729,46 +802,79 @@ function linkFor(name){
 /* ============================================================
    PROFILE + TDEE
    ============================================================ */
+/* ---- Onboarding profile — Option A: saved per-browser in localStorage ---- */
+let USER=null;
+try{ USER=JSON.parse(localStorage.getItem('gs_profile')||'null'); }catch(e){ USER=null; }
+const HAS_PROFILE = !!(USER && USER.goal);
+const DEF = { sex:"Male", age:25, height_in:69, weight_lb:175, goal:"maintain", experience:"advanced", days:6, equipment:"gym" };
+const U = Object.assign({}, DEF, USER||{});
+
 const PROFILE = {
-  height_in: 69,   // 5'9"
-  height_cm: 175,
-  weight_lb: 175,
-  weight_kg: 79.4,
-  age: 25,
-  sex: "Male"
+  height_in: U.height_in,
+  height_cm: Math.round(U.height_in*2.54),
+  weight_lb: U.weight_lb,
+  weight_kg: +(U.weight_lb/2.205).toFixed(1),
+  age: U.age,
+  sex: U.sex
 };
-// Mifflin-St Jeor: BMR = 10·kg + 6.25·cm − 5·age + 5 (male)
-const BMR = Math.round(10*PROFILE.weight_kg + 6.25*PROFILE.height_cm - 5*PROFILE.age + 5);
+// Mifflin-St Jeor: BMR = 10·kg + 6.25·cm − 5·age + (male +5 / female −161)
+const BMR = Math.round(10*PROFILE.weight_kg + 6.25*PROFILE.height_cm - 5*PROFILE.age + (PROFILE.sex==="Female"?-161:5));
 const SEDENTARY = Math.round(BMR * 1.2);  // baseline (no walking, no workout)
 
-// Per-day workout burn estimates (kcal), based on ~80kg + MET values for the work performed
-const DAY_BURN = {
-  Mon: { label:"Legs · Heavy lift",     kcal:430, color:"var(--heavy)" },
-  Tue: { label:"Push · Heavy lift",     kcal:360, color:"var(--heavy)" },
-  Wed: { label:"Pull moderate + abs",   kcal:400, color:"var(--moderate)" },
-  Thu: { label:"Treadmill intervals",   kcal:450, color:"var(--run)" },
-  Fri: { label:"Rest",                  kcal:0,   color:"var(--rest)" },
-  Sat: { label:"Push moderate + abs",   kcal:400, color:"var(--moderate)" },
-  Sun: { label:"Pull · Heavy lift",     kcal:400, color:"var(--heavy)" }
+/* ---- Weekly split, generated from goal + days/week (reuses the authored day templates) ---- */
+const TPL_META = {
+  legs:  { type:"heavy",     focus:"Legs" },
+  pushH: { type:"heavy",     focus:"Push" },
+  pull:  { type:"moderate",  focus:"Pull + Abs" },
+  run:   { type:"intervals", focus:"Running" },
+  pushM: { type:"moderate",  focus:"Push + Abs" },
+  pullH: { type:"heavy",     focus:"Pull" }
 };
+const BASE_SEQ = {2:["pushH","legs"],3:["pushH","pull","legs"],4:["legs","pushH","pull","pushM"],5:["legs","pushH","pull","pushM","pullH"],6:["legs","pushH","pull","pushM","pullH","run"]};
+const SPREAD = {1:["Mon"],2:["Mon","Thu"],3:["Mon","Wed","Fri"],4:["Mon","Tue","Thu","Fri"],5:["Mon","Tue","Wed","Fri","Sat"],6:["Mon","Tue","Wed","Thu","Fri","Sat"],7:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]};
+const DOWS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+function planSplit(u){
+  if(!HAS_PROFILE) return [["Mon","legs"],["Tue","pushH"],["Wed","pull"],["Thu","run"],["Fri",null],["Sat","pushM"],["Sun","pullH"]];
+  const d = Math.max(2, Math.min(6, u.days||3));
+  let active = (BASE_SEQ[d]||BASE_SEQ[3]).slice();
+  if(u.goal==="lose" && !active.includes("run") && active.length<7) active.push("run"); // add a cardio day for fat loss
+  const slots = SPREAD[Math.min(7,active.length)];
+  let ai=0;
+  return DOWS.map(dow => slots.includes(dow) ? [dow, active[ai++]] : [dow, null]);
+}
+const SPLIT_PLAN = planSplit(U);
+
+// Per-day workout burn (kcal), derived from the generated split
+const BURN_BY_TYPE = { heavy:420, moderate:400, intervals:450, rest:0 };
+const TYPE_COLOR   = { heavy:"var(--heavy)", moderate:"var(--moderate)", intervals:"var(--run)", rest:"var(--rest)" };
+const TYPE_TAG     = { heavy:" · Heavy lift", moderate:" · Moderate", intervals:" · Intervals", rest:"" };
+const DAY_BURN = {};
+SPLIT_PLAN.forEach(([dow,tid])=>{
+  const m = tid ? TPL_META[tid] : { type:"rest", focus:"Rest" };
+  DAY_BURN[dow] = { label: m.focus + TYPE_TAG[m.type], kcal: BURN_BY_TYPE[m.type], color: TYPE_COLOR[m.type] };
+});
 const WEEKLY_BURN = Object.values(DAY_BURN).reduce((a,b)=>a+b.kcal,0);
 const WEEKLY_TDEE = SEDENTARY*7 + WEEKLY_BURN;
 const DAILY_AVG = Math.round(WEEKLY_TDEE / 7);
 
 /* ============================================================
-   GOAL + MACROS
-   Chosen goal: MAINTAIN (build muscle, V-taper to slim waist)
+   GOAL + MACROS — derived from the user's chosen goal
    ============================================================ */
-const GOAL = {
-  name: "Maintain & Build Muscle",
-  sub: "Eat at maintenance, ride the comeback/muscle-memory window + creatine. Growing shoulders, chest & back builds a V-taper that makes the waist look smaller.",
-  calories: DAILY_AVG,                 // ~2,471
-  // muscle-focused split at 175 lb
-  protein_g: 185,                      // ~1.05 g/lb — preserve & build
-  fat_g: 70,                           // ~0.4 g/lb — hormone floor
-  // carbs fill the remainder
+const GOAL_DEFS = {
+  lose:     { name:"Lose Fat",          sub:"A slight calorie deficit with protein kept high, so the weight you lose is fat while you hold onto muscle.", delta:-0.20, protein:1.1 },
+  build:    { name:"Build Muscle",      sub:"A small surplus plus progressive overload to add lean mass while staying relatively lean.",              delta:+0.10, protein:1.0 },
+  strength: { name:"Get Stronger",      sub:"Eat at maintenance-plus to fuel heavy, low-rep training and full recovery between sessions.",            delta:+0.05, protein:0.9 },
+  maintain: { name:"Maintain & Recomp", sub:"Eat around maintenance, train hard, and let your body composition slowly improve over time.",            delta:0,     protein:1.0 }
 };
-GOAL.carbs_g = Math.round((GOAL.calories - GOAL.protein_g*4 - GOAL.fat_g*9) / 4);
+const GD = GOAL_DEFS[U.goal] || GOAL_DEFS.maintain;
+const GOAL = {
+  name: GD.name,
+  sub: GD.sub,
+  calories: Math.round(DAILY_AVG*(1+GD.delta)),
+  protein_g: Math.round(PROFILE.weight_lb*GD.protein),   // g/lb scaled by goal
+  fat_g: Math.round(PROFILE.weight_lb*0.4)               // ~0.4 g/lb hormone floor
+};
+GOAL.carbs_g = Math.max(0, Math.round((GOAL.calories - GOAL.protein_g*4 - GOAL.fat_g*9) / 4));
 const MACROS = [
   { key:"p", name:"Protein", g:GOAL.protein_g, kcal:GOAL.protein_g*4 },
   { key:"c", name:"Carbs",   g:GOAL.carbs_g,   kcal:GOAL.carbs_g*4 },
@@ -978,8 +1084,8 @@ const SCHEMES = {
   Moderate: { sets:"3 sets", reps:"8–12 reps", rest:"60–90 sec rest" }
 };
 
-const DAYS = [
-  { dow:"Mon", focus:"Legs", intensity:"Heavy", type:"heavy", color:"var(--heavy)", groups:[
+const TEMPLATES = {
+  legs: { focus:"Legs", intensity:"Heavy", type:"heavy", color:"var(--heavy)", groups:[
     ["Quads (overall)", ["Hack squat","Pendulum squat","Leg press"]],
     ["Quads (teardrop / VMO)", ["Bulgarian split squat","Sissy squat","Heels-elevated narrow squat"]],
     ["Hamstrings", ["Seated leg curl","Romanian deadlift","Nordic curl"]],
@@ -987,7 +1093,7 @@ const DAYS = [
     ["Calves (gastroc)", ["Standing calf raise","Smith standing calf raise","Leg press calf raise"]],
     ["Calves (soleus)", ["Seated calf raise","Bent-knee calf raise","Tibialis raise (antagonist)"]]
   ]},
-  { dow:"Tue", focus:"Push", intensity:"Heavy", type:"heavy", color:"var(--heavy)", groups:[
+  pushH: { focus:"Push", intensity:"Heavy", type:"heavy", color:"var(--heavy)", groups:[
     ["Chest (upper)", ["Incline DB press","Low-to-high cable fly","Incline Smith press"]],
     ["Chest (mid)", ["Flat DB press","Machine chest press (plate-loaded)","Flat barbell bench"]],
     ["Chest (lower)", ["Weighted dips (chest-leaning)","Decline DB press","High-to-low cable fly"]],
@@ -997,7 +1103,7 @@ const DAYS = [
     ["Triceps (lateral)", ["Rope pushdown","Straight-bar pushdown","Close-grip bench press"]],
     ["Triceps (medial)", ["Reverse-grip pushdown","Diamond push-up","Bench dips"]]
   ]},
-  { dow:"Wed", focus:"Pull + Abs", intensity:"Moderate", type:"moderate", color:"var(--moderate)", groups:[
+  pull: { focus:"Pull + Abs", intensity:"Moderate", type:"moderate", color:"var(--moderate)", groups:[
     ["Back (lats — width)", ["Lat pulldown (neutral grip)","Weighted pull-up","Straight-arm pulldown"]],
     ["Back (lats — thickness)", ["Chest-supported T-bar row","Single-arm DB row","Cable row (neutral)"]],
     ["Back (traps)", ["DB shrug","Trap-bar shrug","Face pull"]],
@@ -1010,7 +1116,7 @@ const DAYS = [
     ["Abs (lower)", ["Hanging leg raise","Reverse crunch","Toes-to-bar"]],
     ["Abs (obliques)", ["Hanging oblique knee raise","Cable woodchop","Side plank hip dips"]]
   ]},
-  { dow:"Thu", focus:"Running", intensity:"Intervals", type:"intervals", color:"var(--run)", running:{
+  run: { focus:"Running", intensity:"Intervals", type:"intervals", color:"var(--run)", running:{
     goal:"Treadmill intervals to build anaerobic capacity + cardio engine for kickboxing class. Progress through phases over ~6 weeks. (Baseline reference: easy = 5 mph, hard = 7–8 mph, sprint = 9–10 mph. Tune to your fitness.)",
     warmup:"5 min walk @ 3.5 mph → 5 min easy jog @ 5 mph to get HR up.",
     main:[
@@ -1021,8 +1127,7 @@ const DAYS = [
     ],
     cooldown:"5 min walk @ 3 mph → stretch calves, hip flexors, hamstrings, shoulders."
   }},
-  { dow:"Fri", focus:"Rest", intensity:"Rest", type:"rest", color:"var(--rest)", rest:true },
-  { dow:"Sat", focus:"Push + Abs", intensity:"Moderate", type:"moderate", color:"var(--moderate)", groups:[
+  pushM: { focus:"Push + Abs", intensity:"Moderate", type:"moderate", color:"var(--moderate)", groups:[
     ["Chest (upper)", ["Incline cable press","Incline machine press","High-to-low cable fly reversed"]],
     ["Chest (mid)", ["Machine chest press","Pec deck","Weighted push-up"]],
     ["Chest (lower)", ["Bodyweight dips","Decline cable fly","Decline machine press"]],
@@ -1036,7 +1141,7 @@ const DAYS = [
     ["Abs (lower)", ["Hanging leg raise","Reverse crunch","Toes-to-bar"]],
     ["Abs (obliques)", ["Hanging oblique knee raise","Cable woodchop","Side plank hip dips"]]
   ]},
-  { dow:"Sun", focus:"Pull", intensity:"Heavy", type:"heavy", color:"var(--heavy)", groups:[
+  pullH: { focus:"Pull", intensity:"Heavy", type:"heavy", color:"var(--heavy)", groups:[
     ["Back (lats — width)", ["Weighted pull-up","Heavy lat pulldown","Pendlay row"]],
     ["Back (lats — thickness)", ["Barbell row","Heavy T-bar row","Meadows row"]],
     ["Back (traps)", ["Heavy BB shrug","Trap-bar shrug","Snatch-grip high pull"]],
@@ -1046,7 +1151,12 @@ const DAYS = [
     ["Biceps (short head)", ["Heavy barbell curl","Heavy preacher curl","EZ-bar curl"]],
     ["Forearms", ["Heavy hammer curl","Reverse BB curl","Wrist curl"]]
   ]}
-];
+};
+// Build the actual Mon–Sun week from the user's generated split plan.
+const DAYS = SPLIT_PLAN.map(([dow,tid]) =>
+  tid ? Object.assign({ dow }, TEMPLATES[tid])
+      : { dow, focus:"Rest", intensity:"Rest", type:"rest", color:"var(--rest)", rest:true }
+);
 
 /* ============================================================
    RENDER
@@ -1987,8 +2097,8 @@ function openWalmartCart(list){
     <div class="stats-row">
       <div>
         <div class="col-k">Your profile</div>
-        <div class="profile-v">5'9" · 175 lb · 25 · M</div>
-        <div class="profile-sub">${PROFILE.height_cm} cm · ${PROFILE.weight_kg} kg</div>
+        <div class="profile-v">${Math.floor(PROFILE.height_in/12)}'${PROFILE.height_in%12}" · ${PROFILE.weight_lb} lb · ${PROFILE.age} · ${(PROFILE.sex||'M')[0]}</div>
+        <div class="profile-sub">${PROFILE.height_cm} cm · ${PROFILE.weight_kg} kg · ${GOAL.name}</div>
       </div>
       <div class="kcal">
         <div class="col-k">Daily burn (avg)</div>
@@ -2077,6 +2187,188 @@ DAYS.forEach((d,i) => {
     // (re)draw charts when entering Track so they size correctly
     if(btn.dataset.tab==='track' && typeof renderCharts==='function') renderCharts();
   });
+})();
+
+/* ============================================================
+   ONBOARDING QUIZ — builds a personal profile (Option A: saved
+   in this browser via localStorage). Reuses the same formulas &
+   split templates the app boots from, then reloads to apply.
+   ============================================================ */
+(function quiz(){
+  const overlay = document.getElementById('quizOverlay');
+  const prog    = document.getElementById('quizProg');
+  const body    = document.getElementById('quizBody');
+  const backBtn = document.getElementById('quizBack');
+  const nextBtn = document.getElementById('quizNext');
+  const xBtn    = document.getElementById('quizX');
+
+  // working answers — prefilled when editing an existing profile
+  const Q = HAS_PROFILE
+    ? { goal:U.goal, sex:U.sex, age:U.age, height_in:U.height_in, weight_lb:U.weight_lb, experience:U.experience, days:U.days, equipment:U.equipment }
+    : { goal:null, sex:null, age:null, height_in:null, weight_lb:null, experience:null, days:null, equipment:null };
+  let units = { h:'ft', w:'lb' };
+  let si = 0;
+
+  const GOALS = [
+    { v:"build",    e:"💪", t:"Build muscle",  d:"Add lean mass with a small surplus." },
+    { v:"lose",     e:"🔥", t:"Lose fat",      d:"Slight deficit, keep muscle, add cardio." },
+    { v:"strength", e:"🏋️", t:"Get stronger",  d:"Heavy, low-rep, full recovery." },
+    { v:"maintain", e:"⚖️", t:"Maintain / recomp", d:"Stay lean, slowly recompose." },
+  ];
+  const EXP = [
+    { v:"beginner",     t:"Beginner",     d:"Less than 1 year of consistent training." },
+    { v:"intermediate", t:"Intermediate", d:"1–3 years, know the main lifts." },
+    { v:"advanced",     t:"Advanced",     d:"3+ years, dialed-in technique." },
+  ];
+  const EQUIP = [
+    { v:"gym",       e:"🏢", t:"Full gym",       d:"Machines, cables, barbells, dumbbells." },
+    { v:"dumbbells", e:"🏋️", t:"Dumbbells only",  d:"Home setup with adjustable dumbbells." },
+    { v:"home",      e:"🏠", t:"Bodyweight / minimal", d:"Little or no equipment." },
+  ];
+
+  // preview split — mirrors the HAS_PROFILE branch of planSplit() using the same globals
+  function planPreview(q){
+    const d = Math.max(2, Math.min(6, q.days||3));
+    let active = (BASE_SEQ[d]||BASE_SEQ[3]).slice();
+    if(q.goal==="lose" && !active.includes("run") && active.length<7) active.push("run");
+    const slots = SPREAD[Math.min(7,active.length)];
+    let ai=0;
+    return DOWS.map(dow => slots.includes(dow) ? [dow, active[ai++]] : [dow, null]);
+  }
+  function preview(q){
+    const height_cm=Math.round(q.height_in*2.54), weight_kg=q.weight_lb/2.205;
+    const bmr=Math.round(10*weight_kg+6.25*height_cm-5*q.age+(q.sex==="Female"?-161:5));
+    const sed=Math.round(bmr*1.2);
+    const plan=planPreview(q);
+    let wb=0; plan.forEach(([,t])=>{ wb+=BURN_BY_TYPE[t?TPL_META[t].type:"rest"]; });
+    const dailyAvg=Math.round((sed*7+wb)/7);
+    const gd=GOAL_DEFS[q.goal]||GOAL_DEFS.maintain;
+    const cals=Math.round(dailyAvg*(1+gd.delta));
+    const protein=Math.round(q.weight_lb*gd.protein), fat=Math.round(q.weight_lb*0.4);
+    const carbs=Math.max(0,Math.round((cals-protein*4-fat*9)/4));
+    return { name:gd.name, sub:gd.sub, cals, protein, fat, carbs, plan };
+  }
+
+  // ---- step definitions ----
+  const steps = [
+    { k:"Step 1 · Goal", q:"What's your main goal?", render(){ return optGrid(GOALS,"goal"); } },
+    { k:"Step 2 · You", q:"What's your sex?", hint:"Used only to estimate your calorie needs (Mifflin-St Jeor).",
+      render(){ return `<div class="quiz-opts two">
+        ${optBtn({v:"Male",e:"♂",t:"Male"},"sex")}
+        ${optBtn({v:"Female",e:"♀",t:"Female"},"sex")}</div>`; } },
+    { k:"Step 3 · Body stats", q:"Your age, height & weight", hint:"Powers your calorie & macro targets.",
+      render(){
+        const ft=Q.height_in?Math.floor(Q.height_in/12):"", inch=Q.height_in?Q.height_in%12:"";
+        const cm=Q.height_in?Math.round(Q.height_in*2.54):"";
+        const kg=Q.weight_lb?Math.round(Q.weight_lb/2.205):"";
+        return `<div class="quiz-fields">
+          <div class="quiz-field"><label>Age</label>
+            <input class="quiz-input" id="qAge" type="number" inputmode="numeric" placeholder="25" value="${Q.age||""}"></div>
+          <div class="quiz-field"><label>Height</label>
+            <div class="row">
+              ${units.h==="ft"
+                ? `<input class="quiz-input" id="qFt" type="number" inputmode="numeric" placeholder="5" value="${ft}"><input class="quiz-input" id="qIn" type="number" inputmode="numeric" placeholder="9" value="${inch}">`
+                : `<input class="quiz-input" id="qCm" type="number" inputmode="numeric" placeholder="175" value="${cm}">`}
+              <div class="unit-toggle"><button data-hu="ft" class="${units.h==="ft"?"on":""}">ft/in</button><button data-hu="cm" class="${units.h==="cm"?"on":""}">cm</button></div>
+            </div></div>
+          <div class="quiz-field"><label>Weight</label>
+            <div class="row">
+              ${units.w==="lb"
+                ? `<input class="quiz-input" id="qW" type="number" inputmode="numeric" placeholder="175" value="${Q.weight_lb||""}">`
+                : `<input class="quiz-input" id="qW" type="number" inputmode="numeric" placeholder="80" value="${kg}">`}
+              <div class="unit-toggle"><button data-wu="lb" class="${units.w==="lb"?"on":""}">lb</button><button data-wu="kg" class="${units.w==="kg"?"on":""}">kg</button></div>
+            </div></div>
+        </div>`;
+      },
+      wire(){
+        body.querySelectorAll("[data-hu]").forEach(b=>b.onclick=()=>{ readStats(); units.h=b.dataset.hu; paint(); });
+        body.querySelectorAll("[data-wu]").forEach(b=>b.onclick=()=>{ readStats(); units.w=b.dataset.wu; paint(); });
+      } },
+    { k:"Step 4 · Experience", q:"How experienced are you?", render(){ return optGrid(EXP,"experience"); } },
+    { k:"Step 5 · Frequency", q:"How many days a week can you train?", hint:"We'll shape the split around this.",
+      render(){ return `<div class="quiz-opts">${[2,3,4,5,6].map(n=>
+        `<button class="quiz-opt ${Q.days===n?"sel":""}" data-days="${n}"><div class="ot">${n} days / week</div><div class="od">${n<=3?"Great for beginners & busy weeks":n<=4?"Balanced — most people live here":"High volume, faster progress"}</div></button>`).join("")}</div>`; },
+      wire(){ body.querySelectorAll("[data-days]").forEach(b=>b.onclick=()=>pick("days",+b.dataset.days)); } },
+    { k:"Step 6 · Equipment", q:"What do you train with?", hint:"Exercise library is gym-based for now; home/dumbbell tuning is coming.",
+      render(){ return optGrid(EQUIP,"equipment"); } },
+    { k:"All set", q:"Here's your plan", isSummary:true,
+      render(){
+        const p=preview(Q);
+        const active=p.plan.filter(([,t])=>t).length;
+        const hasRun=p.plan.some(([,t])=>t==="run");
+        const days=p.plan.map(([dow,t])=>{ const f=t?TPL_META[t].focus:"Rest"; const short=f.split(" ")[0]; return `<div class="qd ${t?"":"rest"}">${dow}<b>${t?short:"—"}</b></div>`; }).join("");
+        return `<div class="quiz-summary">
+          <div class="qs-card hero"><div class="qk">Your goal</div><div class="qv">${p.name}</div><div class="qsub">${p.sub}</div>
+            <div class="qs-macros">
+              <div class="m"><div class="mv">${p.cals.toLocaleString()}</div><div class="ml">kcal/day</div></div>
+              <div class="m"><div class="mv">${p.protein}g</div><div class="ml">Protein</div></div>
+              <div class="m"><div class="mv">${p.carbs}g</div><div class="ml">Carbs</div></div>
+              <div class="m"><div class="mv">${p.fat}g</div><div class="ml">Fat</div></div>
+            </div></div>
+          <div class="qs-card"><div class="qk">Your week · ${active} active day${active===1?"":"s"}${hasRun?" · cardio added for fat loss":""}</div>
+            <div class="qs-days">${days}</div></div>
+        </div>`;
+      } },
+  ];
+
+  // ---- helpers ----
+  function optGrid(list,field){ return `<div class="quiz-opts">${list.map(o=>optBtn(o,field)).join("")}</div>`; }
+  function optBtn(o,field){
+    const sel=Q[field]===o.v?"sel":"";
+    return `<button class="quiz-opt ${sel}" data-pick="${field}" data-val="${o.v}">
+      <div class="ot">${o.e?`<span class="oe">${o.e}</span>`:""}${o.t}</div>${o.d?`<div class="od">${o.d}</div>`:""}</button>`;
+  }
+  function pick(field,val){ Q[field]=val; const cur=steps[si]; if(!cur.isSummary){ paint(); setTimeout(()=>{ if(si<steps.length-1){ si++; paint(); } }, 160); } }
+  function readStats(){
+    const age=body.querySelector("#qAge"); if(age&&age.value) Q.age=Math.max(13,Math.min(90,+age.value));
+    if(units.h==="ft"){ const ft=body.querySelector("#qFt"), inn=body.querySelector("#qIn");
+      if(ft&&ft.value) Q.height_in=Math.round((+ft.value)*12+(inn&&inn.value?+inn.value:0)); }
+    else { const cm=body.querySelector("#qCm"); if(cm&&cm.value) Q.height_in=Math.round((+cm.value)/2.54); }
+    const w=body.querySelector("#qW"); if(w&&w.value) Q.weight_lb= units.w==="lb" ? Math.round(+w.value) : Math.round((+w.value)*2.205);
+  }
+  function valid(){
+    const s=steps[si];
+    if(s.isSummary) return true;
+    if(si===0) return !!Q.goal;
+    if(si===1) return !!Q.sex;
+    if(si===2){ readStats(); return Q.age>0 && Q.height_in>0 && Q.weight_lb>0; }
+    if(si===3) return !!Q.experience;
+    if(si===4) return !!Q.days;
+    if(si===5) return !!Q.equipment;
+    return true;
+  }
+  function paint(){
+    const s=steps[si];
+    prog.innerHTML=steps.map((_,i)=>`<div class="seg ${i<=si?"on":""}"></div>`).join("");
+    body.innerHTML=`<div class="quiz-step on"><div class="quiz-k">${s.k}</div><div class="quiz-q">${s.q}</div>${s.hint?`<div class="quiz-hint">${s.hint}</div>`:""}${s.render()}</div>`;
+    body.querySelectorAll("[data-pick]").forEach(b=>b.onclick=()=>pick(b.dataset.pick,b.dataset.val));
+    if(s.wire) s.wire();
+    backBtn.style.display = si===0 ? "none" : "";
+    nextBtn.textContent = s.isSummary ? (HAS_PROFILE?"Save changes":"Start training →") : "Next";
+    nextBtn.disabled = !valid();
+    // live-enable Next as stats inputs change
+    if(si===2) body.querySelectorAll(".quiz-input").forEach(inp=>inp.oninput=()=>{ nextBtn.disabled=!valid(); });
+  }
+  function open(editable){
+    si = editable ? 0 : 0;
+    xBtn.classList.toggle("show", !!editable);
+    overlay.classList.add("show");
+    paint();
+  }
+  function save(){
+    readStats();
+    localStorage.setItem("gs_profile", JSON.stringify(Q));
+    location.reload();
+  }
+
+  nextBtn.onclick=()=>{ if(!valid()) return; if(steps[si].isSummary){ save(); return; } si++; paint(); };
+  backBtn.onclick=()=>{ if(si>0){ si--; paint(); } };
+  xBtn.onclick=()=>overlay.classList.remove("show");
+  const editBtn=document.getElementById("editProfileBtn");
+  if(editBtn) editBtn.onclick=()=>open(true);
+
+  // first visit (no saved profile) → force the quiz
+  if(!HAS_PROFILE) open(false);
 })();
 
 /* register service worker for offline + installable */
