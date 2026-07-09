@@ -1554,7 +1554,7 @@ async function coachSend(){
   if(coachBusy)return;
   const inp=document.getElementById('coachInput'); const text=(inp.value||'').trim(); if(!text)return;
   if(!getPass()){
-    const p=prompt('Enter your passcode to enable the coach (same one as Cloud Sync):');
+    const p=await askPasscode();
     if(!p)return; localStorage.setItem('gs_pass',p.trim());
   }
   inp.value=''; inp.style.height='auto';
@@ -1570,7 +1570,11 @@ async function coachSend(){
       body:JSON.stringify({ messages:coachMsgs.slice(-12), context:coachContext() })});
     const data=await r.json().catch(()=>({}));
     typing.remove();
-    if(!r.ok){ coachBubble('sys','⚠️ '+(data.error||('Error '+r.status))); coachBusy=false; return; }
+    if(!r.ok){
+      if(r.status===401){ localStorage.removeItem('gs_pass'); coachBubble('sys','⚠️ Wrong passcode. Send your message again to re-enter it.'); }
+      else coachBubble('sys','⚠️ '+(data.error||('Error '+r.status)));
+      coachBusy=false; return;
+    }
     const confirms=[];
     (data.actions||[]).forEach(a=>{ const c=coachApply(a); if(c)confirms.push(c); });
     if(confirms.length){ coachRefresh(); confirms.forEach(c=>coachBubble('sys',c)); }
@@ -1580,6 +1584,25 @@ async function coachSend(){
     LS.set(COACH_HIST,coachMsgs.slice(-20));
   }catch(e){ typing.remove(); coachBubble('sys','⚠️ '+(e.message||e)); }
   coachBusy=false;
+}
+/* in-app passcode dialog — reliable on mobile (browser prompt() is often blocked) */
+function askPasscode(){
+  return new Promise(res=>{
+    const ov=document.createElement('div'); ov.className='pass-ov';
+    ov.innerHTML=`<div class="pass-box">
+      <div class="pass-t">🔒 Enter your coach passcode</div>
+      <div class="pass-d">The same <b>SYNC_PASSCODE</b> you set in Vercel. It's saved on this device only, so you enter it once.</div>
+      <input class="pass-inp" id="passInp" type="password" inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false" placeholder="passcode">
+      <div class="pass-nav"><button class="pass-btn cancel" id="passCancel">Cancel</button><button class="pass-btn ok" id="passOk">Save</button></div>
+    </div>`;
+    document.body.appendChild(ov);
+    const inp=ov.querySelector('#passInp'); setTimeout(()=>inp.focus(),60);
+    const done=v=>{ ov.remove(); res(v); };
+    ov.querySelector('#passOk').onclick=()=>done((inp.value||'').trim()||null);
+    ov.querySelector('#passCancel').onclick=()=>done(null);
+    ov.addEventListener('click',e=>{ if(e.target===ov) done(null); });
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); done((inp.value||'').trim()||null); }});
+  });
 }
 function coachOpen(){ const p=document.getElementById('coachPanel'); if(p){ p.classList.add('show'); document.getElementById('coachInput').focus(); } }
 function coachClose(){ const p=document.getElementById('coachPanel'); if(p) p.classList.remove('show'); if('speechSynthesis' in window) speechSynthesis.cancel(); if(recog){ try{recog.stop();}catch(e){} recog=null; } }
@@ -1624,7 +1647,21 @@ function initCoach(){
   .coach-hd .vtog{background:none;border:1px solid var(--line2,#2c2c3a);border-radius:9px;color:var(--muted,#9a9aac);
     font-size:1rem;cursor:pointer;padding:5px 9px;line-height:1;margin-left:auto;}
   .coach-hd .vtog.on{color:#06210f;background:linear-gradient(160deg,#4ade80,#22c55e);border-color:transparent;}
-  .coach-hd .x{margin-left:8px;}`;
+  .coach-hd .x{margin-left:8px;}
+  .pass-ov{position:fixed;inset:0;z-index:120;background:rgba(4,4,8,.82);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+    display:flex;align-items:center;justify-content:center;padding:20px;}
+  .pass-box{width:100%;max-width:340px;background:linear-gradient(180deg,var(--card,#12121a),var(--bg2,#0e0e15));
+    border:1px solid var(--line2,#2c2c3a);border-radius:18px;padding:20px;box-shadow:0 24px 60px -16px rgba(0,0,0,.75);}
+  .pass-t{font-weight:800;font-size:1.05rem;letter-spacing:-.02em;}
+  .pass-d{font-size:.78rem;color:var(--muted,#9a9aac);margin-top:7px;line-height:1.5;}
+  .pass-d b{color:var(--txt,#e9e9f0);font-weight:700;}
+  .pass-inp{width:100%;margin-top:15px;background:var(--bg,#07070b);border:1.5px solid var(--line2,#2c2c3a);border-radius:11px;
+    padding:13px 14px;color:var(--txt,#e9e9f0);font:inherit;font-size:1.05rem;outline:none;box-sizing:border-box;}
+  .pass-inp:focus{border-color:var(--accent,#4ade80);}
+  .pass-nav{display:flex;gap:9px;margin-top:16px;}
+  .pass-btn{flex:1;padding:13px;border-radius:11px;border:none;font-weight:800;font-size:.95rem;cursor:pointer;}
+  .pass-btn.ok{background:linear-gradient(160deg,#4ade80,#22c55e);color:#06210f;}
+  .pass-btn.cancel{background:var(--card2,#16161f);color:var(--muted,#9a9aac);border:1px solid var(--line2,#2c2c3a);}`;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
   const fab=document.createElement('button'); fab.className='coach-fab'; fab.id='coachFab';
