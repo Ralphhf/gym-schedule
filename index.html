@@ -1458,6 +1458,16 @@ const COACH_HIST='gs_coach';
 let coachMsgs=LS.get(COACH_HIST,[]);   // [{role,content}] text-only
 let coachBusy=false;
 
+/* ---- Voice (free, browser-native Web Speech API — no API cost) ---- */
+let voiceOn=LS.get('gs_voice',false);  // read coach replies aloud
+let recog=null;                         // active SpeechRecognition instance
+function stripForSpeech(t){ return String(t).replace(/[\u{1F000}-\u{1FFFF}←-➿⬀-⯿]/gu,'').replace(/\s+/g,' ').trim(); }
+function speak(text){
+  if(!voiceOn || !('speechSynthesis' in window)) return;
+  const clean=stripForSpeech(text); if(!clean) return;
+  try{ speechSynthesis.cancel(); const u=new SpeechSynthesisUtterance(clean); u.rate=1.03; u.pitch=1; speechSynthesis.speak(u); }catch(e){}
+}
+
 function coachRefresh(){
   ['renderPR','renderTracker','renderCharts','renderData'].forEach(fn=>{
     try{ if(typeof window[fn]==='function') window[fn](); }catch(e){}
@@ -1565,14 +1575,14 @@ async function coachSend(){
     (data.actions||[]).forEach(a=>{ const c=coachApply(a); if(c)confirms.push(c); });
     if(confirms.length){ coachRefresh(); confirms.forEach(c=>coachBubble('sys',c)); }
     const reply=(data.reply||'').trim() || (confirms.length?'':'Got it.');
-    if(reply){ coachBubble('bot',reply); coachMsgs.push({role:'assistant',content:reply}); }
-    else if(confirms.length){ coachMsgs.push({role:'assistant',content:confirms.join('\n')}); }
+    if(reply){ coachBubble('bot',reply); coachMsgs.push({role:'assistant',content:reply}); speak(reply); }
+    else if(confirms.length){ coachMsgs.push({role:'assistant',content:confirms.join('\n')}); speak(confirms.join('. ')); }
     LS.set(COACH_HIST,coachMsgs.slice(-20));
   }catch(e){ typing.remove(); coachBubble('sys','⚠️ '+(e.message||e)); }
   coachBusy=false;
 }
 function coachOpen(){ const p=document.getElementById('coachPanel'); if(p){ p.classList.add('show'); document.getElementById('coachInput').focus(); } }
-function coachClose(){ const p=document.getElementById('coachPanel'); if(p) p.classList.remove('show'); }
+function coachClose(){ const p=document.getElementById('coachPanel'); if(p) p.classList.remove('show'); if('speechSynthesis' in window) speechSynthesis.cancel(); if(recog){ try{recog.stop();}catch(e){} recog=null; } }
 
 function initCoach(){
   if(document.getElementById('coachFab')) return;
@@ -1605,7 +1615,16 @@ function initCoach(){
   .coach-in textarea:focus{border-color:var(--accent,#4ade80);}
   .coach-in .send{flex:none;width:44px;height:44px;border-radius:12px;border:none;cursor:pointer;
     background:linear-gradient(160deg,#4ade80,#22c55e);color:#06210f;font-size:1.2rem;font-weight:800;}
-  .coach-in .send:active{transform:scale(.94);}`;
+  .coach-in .send:active{transform:scale(.94);}
+  .coach-in .mic{flex:none;width:44px;height:44px;border-radius:12px;border:1px solid var(--line2,#2c2c3a);cursor:pointer;
+    background:var(--bg2,#0e0e15);color:var(--txt,#e9e9f0);font-size:1.15rem;transition:transform .12s,background .2s,border-color .2s;}
+  .coach-in .mic:active{transform:scale(.94);}
+  .coach-in .mic.listening{background:linear-gradient(160deg,#ff5d6c,#e11d48);color:#fff;border-color:transparent;animation:micpulse 1s ease-in-out infinite;}
+  @keyframes micpulse{0%,100%{box-shadow:0 0 0 0 rgba(255,93,108,.55);}50%{box-shadow:0 0 0 9px rgba(255,93,108,0);}}
+  .coach-hd .vtog{background:none;border:1px solid var(--line2,#2c2c3a);border-radius:9px;color:var(--muted,#9a9aac);
+    font-size:1rem;cursor:pointer;padding:5px 9px;line-height:1;margin-left:auto;}
+  .coach-hd .vtog.on{color:#06210f;background:linear-gradient(160deg,#4ade80,#22c55e);border-color:transparent;}
+  .coach-hd .x{margin-left:8px;}`;
   const st=document.createElement('style'); st.textContent=css; document.head.appendChild(st);
 
   const fab=document.createElement('button'); fab.className='coach-fab'; fab.id='coachFab';
@@ -1616,11 +1635,13 @@ function initCoach(){
     <div class="coach-hd">
       <div class="av">🤖</div>
       <div class="ti">Coach <small>logs your lifts &amp; meals · knows your plan</small></div>
+      <button class="vtog" id="coachVoice" title="Read replies aloud">🔊</button>
       <button class="x" id="coachX">✕</button>
     </div>
     <div id="coachMsgs"></div>
     <div class="coach-in">
-      <textarea id="coachInput" rows="1" placeholder="e.g. benched 185 for 5, 3 sets…"></textarea>
+      <button class="mic" id="coachMic" title="Hold to speak" aria-label="Speak">🎤</button>
+      <textarea id="coachInput" rows="1" placeholder="Speak or type — e.g. benched 185 for 5, 3 sets…"></textarea>
       <button class="send" id="coachSend">➤</button>
     </div>`;
   document.body.appendChild(panel);
@@ -1631,6 +1652,37 @@ function initCoach(){
   const inp=document.getElementById('coachInput');
   inp.addEventListener('input',()=>{ inp.style.height='auto'; inp.style.height=Math.min(120,inp.scrollHeight)+'px'; });
   inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); coachSend(); }});
+
+  // ---- voice output toggle (coach reads replies aloud) ----
+  const vtog=document.getElementById('coachVoice');
+  if(vtog){
+    if(!('speechSynthesis' in window)){ vtog.style.display='none'; }
+    else {
+      const paint=()=>{ vtog.classList.toggle('on',voiceOn); vtog.textContent=voiceOn?'🔊':'🔇'; };
+      paint();
+      vtog.addEventListener('click',()=>{ voiceOn=!voiceOn; LS.set('gs_voice',voiceOn); paint(); if(!voiceOn) speechSynthesis.cancel(); });
+    }
+  }
+  // ---- voice input (speech-to-text) ----
+  const mic=document.getElementById('coachMic');
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(mic){
+    if(!SR){ mic.style.display='none'; }
+    else {
+      mic.addEventListener('click',()=>{
+        if(recog){ try{recog.stop();}catch(e){} return; }               // tap again = stop
+        try{ recog=new SR(); }catch(e){ return; }
+        recog.lang='en-US'; recog.interimResults=true; recog.continuous=false;
+        const box=document.getElementById('coachInput');
+        mic.classList.add('listening');
+        recog.onresult=(e)=>{ let t=''; for(let i=0;i<e.results.length;i++) t+=e.results[i][0].transcript;
+          box.value=t; box.style.height='auto'; box.style.height=Math.min(120,box.scrollHeight)+'px'; };
+        recog.onerror=()=>{ mic.classList.remove('listening'); recog=null; };
+        recog.onend=()=>{ mic.classList.remove('listening'); recog=null; if((box.value||'').trim()) coachSend(); };  // auto-send when you stop talking
+        try{ recog.start(); }catch(e){ mic.classList.remove('listening'); recog=null; }
+      });
+    }
+  }
   coachRenderHistory();
 }
 initCoach();
